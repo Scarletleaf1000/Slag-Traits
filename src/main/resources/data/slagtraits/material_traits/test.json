@@ -1,0 +1,6 @@
+{
+  "material": "slag:iron",
+  "traits": [
+    { "id": "slagtraits:reinforced", "modifier": 1.0 }
+  ]
+}

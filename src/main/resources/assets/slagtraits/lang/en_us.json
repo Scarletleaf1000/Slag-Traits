@@ -1,3 +1,5 @@
 {
-
+  "tooltip.slagtraits.traits_header": "Traits:",
+  "trait.slagtraits.reinforced": "Reinforced %s",
+  "trait.slagtraits.missing": "Unknown Trait %s"
 }
