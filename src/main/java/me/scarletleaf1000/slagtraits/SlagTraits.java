@@ -68,7 +68,7 @@ public class SlagTraits {
         event.addListener(new MaterialTraitReloadListener());
     }
     @SubscribeEvent
-    public static void onRegisterPayloads(RegisterPayloadHandlersEvent event) {
+    public void onRegisterPayloads(RegisterPayloadHandlersEvent event) {
         event.registrar("1").playToClient(
                 SyncMaterialTraitsS2C.TYPE,
                 SyncMaterialTraitsS2C.STREAM_CODEC,
