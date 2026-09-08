@@ -24,7 +24,7 @@ public class TraitTooltipHandler {
         ItemStack stack = event.getItemStack();
         if (!(stack.getItem() instanceof IModularItem)) return;
 
-        List<Pair<ISlagTrait, Float>> traits = TraitUtils.getTraits(stack);
+        List<Pair<ISlagTrait, Integer>> traits = TraitUtils.getTraits(stack);
         if (traits.isEmpty()) return;
 
         List<Component> tooltip = event.getToolTip();

@@ -126,6 +126,7 @@ dependencies {
     // http://www.gradle.org/docs/current/userguide/dependency_management.html
 
     implementation "maven.modrinth:56bnCCwq:CGRQn5ML" // slag n' embers
+    implementation "maven.modrinth:u6dRKJwZ:ufHUqt9b" // jei
 }
 
 // This block of code expands all declared replace properties in the specified resource targets.

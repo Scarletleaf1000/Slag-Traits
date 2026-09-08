@@ -15,28 +15,21 @@ import java.util.List;
 import java.util.Map;
 
 public class TraitUtils {
-    public static List<Pair<ISlagTrait, Float>> getTraits(ItemStack stack) {
+    public static List<Pair<ISlagTrait, Integer>> getTraits(ItemStack stack) {
         if (!(stack.getItem() instanceof IModularItem modularItem)) return List.of();
 
         var parts = modularItem.getParts(stack);
         if (parts == null || parts.isEmpty()) return List.of();
 
-        Map<ResourceLocation, Pair<ISlagTrait, Float>> resolved = new HashMap<>();
+        Map<ResourceLocation, Pair<ISlagTrait, Integer>> resolved = new HashMap<>();
         for (MaterialType material : modularItem.getMaterialTypes(parts)) {
             for (TraitInstance instance : AllMaterialTraits.getTraitsFor(material.id)) {
                 ISlagTrait trait = AllTraits.get(instance.id());
                 if (trait == null) continue;
-                resolved.merge(instance.id(), Pair.of(trait, instance.modifier()),
+                resolved.merge(instance.id(), Pair.of(trait, instance.tier()),
                         (a, b) -> a.getSecond() >= b.getSecond() ? a : b);
             }
         }
         return List.copyOf(resolved.values());
-    }
-
-    /** Formats a trait modifier for display: whole numbers as ints ("3"), otherwise one decimal ("1.5"). */
-    public static String formatModifier(float modifier) {
-        if (modifier == Math.floor(modifier) && !Float.isInfinite(modifier))
-            return String.valueOf((int) modifier);
-        return String.valueOf(modifier);
     }
 }

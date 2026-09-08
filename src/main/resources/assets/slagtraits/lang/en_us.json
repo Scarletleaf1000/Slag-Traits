@@ -1,6 +1,13 @@
 {
   "tooltip.slagtraits.traits_header": "Traits:",
   "tooltip.slagtraits.hold_alt": "Hold [%s] for Traits",
-  "trait.slagtraits.reinforced": "Reinforced %s",
+  "trait.slagtraits.fire_resistant": "Fire Resistant",
+  "trait.slagtraits.fragmenting": "Fragmenting %s",
+  "trait.slagtraits.sturdy": "Sturdy %s",
+  "trait.slagtraits.regrowing": "Regrowing %s",
+  "trait.slagtraits.polished": "Polished %s",
+  "trait.slagtraits.experienced": "Experienced %s",
+  "trait.slagtraits.endolithic": "Endolithic %s",
+  "trait.slagtraits.bejeweled": "Bejeweled %s",
   "trait.slagtraits.missing": "Unknown Trait %s"
 }

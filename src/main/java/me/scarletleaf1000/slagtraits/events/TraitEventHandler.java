@@ -30,38 +30,38 @@ public class TraitEventHandler {
     /** Calls {@code action} once per (trait, stack) pair found on the entity's held item. */
     private static void forHeldItem(LivingEntity entity, BiConsumer<ISlagTrait, HeldContext> action) {
         ItemStack stack = entity.getMainHandItem();
-        for (Pair<ISlagTrait, Float> pair : TraitUtils.getTraits(stack))
+        for (Pair<ISlagTrait, Integer> pair : TraitUtils.getTraits(stack))
             action.accept(pair.getFirst(), new HeldContext(stack, pair.getSecond()));
     }
 
     /** Calls {@code action} once per (trait, stack) pair across ALL equipment slots (armor + hands). */
     private static void forAllEquipment(LivingEntity entity, BiConsumer<ISlagTrait, HeldContext> action) {
         for (ItemStack stack : entity.getAllSlots())
-            for (Pair<ISlagTrait, Float> pair : TraitUtils.getTraits(stack))
+            for (Pair<ISlagTrait, Integer> pair : TraitUtils.getTraits(stack))
                 action.accept(pair.getFirst(), new HeldContext(stack, pair.getSecond()));
     }
 
-    /** The stack a trait was resolved from plus its modifier, so lambdas stay readable. */
-    private record HeldContext(ItemStack stack, float modifier) {}
+    /** The stack a trait was resolved from plus its tier, so lambdas stay readable. */
+    private record HeldContext(ItemStack stack, int tier) {}
 
     // ---- Mining / block interaction ----
 
     @SubscribeEvent
     public static void onBreakSpeed(PlayerEvent.BreakSpeed event) {
         forHeldItem(event.getEntity(), (trait, ctx) ->
-                trait.onBreakSpeed(event, ctx.stack(), ctx.modifier()));
+                trait.onBreakSpeed(event, ctx.stack(), ctx.tier()));
     }
 
     @SubscribeEvent
     public static void onHarvestCheck(PlayerEvent.HarvestCheck event) {
         forHeldItem(event.getEntity(), (trait, ctx) ->
-                trait.onHarvestCheck(event, ctx.stack(), ctx.modifier()));
+                trait.onHarvestCheck(event, ctx.stack(), ctx.tier()));
     }
 
     @SubscribeEvent
     public static void onBlockBreak(BlockEvent.BreakEvent event) {
         forHeldItem(event.getPlayer(), (trait, ctx) ->
-                trait.onBlockBreak(event, ctx.stack(), ctx.modifier()));
+                trait.onBlockBreak(event, ctx.stack(), ctx.tier()));
     }
 
     // ---- Combat (attacker side) ----
@@ -71,26 +71,26 @@ public class TraitEventHandler {
         // damage events fire for the VICTIM — the attacker is the damage source entity:
         if (!(event.getSource().getEntity() instanceof LivingEntity attacker)) return;
         forHeldItem(attacker, (trait, ctx) ->
-                trait.onDamageDealt(event, ctx.stack(), ctx.modifier()));
+                trait.onDamageDealt(event, ctx.stack(), ctx.tier()));
     }
 
     @SubscribeEvent
     public static void onCriticalHit(CriticalHitEvent event) {
         forHeldItem(event.getEntity(), (trait, ctx) ->
-                trait.onCriticalHit(event, ctx.stack(), ctx.modifier()));
+                trait.onCriticalHit(event, ctx.stack(), ctx.tier()));
     }
 
     @SubscribeEvent
     public static void onKill(LivingDeathEvent event) {
         if (!(event.getSource().getEntity() instanceof LivingEntity killer)) return;
         forHeldItem(killer, (trait, ctx) ->
-                trait.onKill(event, ctx.stack(), ctx.modifier()));
+                trait.onKill(event, ctx.stack(), ctx.tier()));
     }
 
     @SubscribeEvent
     public static void onArrowLoose(ArrowLooseEvent event) {
         ItemStack bow = event.getBow();
-        for (Pair<ISlagTrait, Float> pair : TraitUtils.getTraits(bow))
+        for (Pair<ISlagTrait, Integer> pair : TraitUtils.getTraits(bow))
             pair.getFirst().onArrowLoose(event, bow, pair.getSecond());
     }
 
@@ -99,19 +99,19 @@ public class TraitEventHandler {
     @SubscribeEvent
     public static void onDamageIncoming(LivingIncomingDamageEvent event) {
         forAllEquipment(event.getEntity(), (trait, ctx) ->
-                trait.onDamageIncoming(event, ctx.stack(), ctx.modifier()));
+                trait.onDamageIncoming(event, ctx.stack(), ctx.tier()));
     }
 
     @SubscribeEvent
     public static void onDamageTaken(LivingDamageEvent.Pre event) {
         forAllEquipment(event.getEntity(), (trait, ctx) ->
-                trait.onDamageTaken(event, ctx.stack(), ctx.modifier()));
+                trait.onDamageTaken(event, ctx.stack(), ctx.tier()));
     }
 
     @SubscribeEvent
     public static void onDeath(LivingDeathEvent event) {
         forAllEquipment(event.getEntity(), (trait, ctx) ->
-                trait.onDeath(event, ctx.stack(), ctx.modifier()));
+                trait.onDeath(event, ctx.stack(), ctx.tier()));
     }
 
     // ---- Item use / interaction ----
@@ -119,42 +119,42 @@ public class TraitEventHandler {
     @SubscribeEvent
     public static void onRightClickItem(PlayerInteractEvent.RightClickItem event) {
         ItemStack stack = event.getItemStack();
-        for (Pair<ISlagTrait, Float> pair : TraitUtils.getTraits(stack))
+        for (Pair<ISlagTrait, Integer> pair : TraitUtils.getTraits(stack))
             pair.getFirst().onRightClickItem(event, stack, pair.getSecond());
     }
 
     @SubscribeEvent
     public static void onRightClickBlock(PlayerInteractEvent.RightClickBlock event) {
         ItemStack stack = event.getItemStack();
-        for (Pair<ISlagTrait, Float> pair : TraitUtils.getTraits(stack))
+        for (Pair<ISlagTrait, Integer> pair : TraitUtils.getTraits(stack))
             pair.getFirst().onRightClickBlock(event, stack, pair.getSecond());
     }
 
     @SubscribeEvent
     public static void onLeftClickBlock(PlayerInteractEvent.LeftClickBlock event) {
         ItemStack stack = event.getItemStack();
-        for (Pair<ISlagTrait, Float> pair : TraitUtils.getTraits(stack))
+        for (Pair<ISlagTrait, Integer> pair : TraitUtils.getTraits(stack))
             pair.getFirst().onLeftClickBlock(event, stack, pair.getSecond());
     }
 
     @SubscribeEvent
     public static void onEntityInteract(PlayerInteractEvent.EntityInteract event) {
         ItemStack stack = event.getItemStack();
-        for (Pair<ISlagTrait, Float> pair : TraitUtils.getTraits(stack))
+        for (Pair<ISlagTrait, Integer> pair : TraitUtils.getTraits(stack))
             pair.getFirst().onEntityInteract(event, stack, pair.getSecond());
     }
 
     @SubscribeEvent
     public static void onItemUseTick(LivingEntityUseItemEvent.Tick event) {
         ItemStack stack = event.getItem();
-        for (Pair<ISlagTrait, Float> pair : TraitUtils.getTraits(stack))
+        for (Pair<ISlagTrait, Integer> pair : TraitUtils.getTraits(stack))
             pair.getFirst().onItemUseTick(event, stack, pair.getSecond());
     }
 
     @SubscribeEvent
     public static void onItemUseFinish(LivingEntityUseItemEvent.Finish event) {
         ItemStack stack = event.getItem();
-        for (Pair<ISlagTrait, Float> pair : TraitUtils.getTraits(stack))
+        for (Pair<ISlagTrait, Integer> pair : TraitUtils.getTraits(stack))
             pair.getFirst().onItemUseFinish(event, stack, pair.getSecond());
     }
 
@@ -163,20 +163,20 @@ public class TraitEventHandler {
     @SubscribeEvent
     public static void onPlayerTick(PlayerTickEvent.Post event) {
         forHeldItem(event.getEntity(), (trait, ctx) ->
-                trait.onPlayerTick(event, ctx.stack(), ctx.modifier()));
+                trait.onPlayerTick(event, ctx.stack(), ctx.tier()));
     }
 
     @SubscribeEvent
     public static void onEquipmentChange(LivingEquipmentChangeEvent event) {
         // only the newly equipped stack — traits on the removed item shouldn't fire "equip" logic
         ItemStack stack = event.getTo();
-        for (Pair<ISlagTrait, Float> pair : TraitUtils.getTraits(stack))
+        for (Pair<ISlagTrait, Integer> pair : TraitUtils.getTraits(stack))
             pair.getFirst().onEquipmentChange(event, stack, pair.getSecond());
     }
 
     @SubscribeEvent
     public static void onXpPickup(PlayerXpEvent.PickupXp event) {
         forHeldItem(event.getEntity(), (trait, ctx) ->
-                trait.onXpPickup(event, ctx.stack(), ctx.modifier()));
+                trait.onXpPickup(event, ctx.stack(), ctx.tier()));
     }
 }

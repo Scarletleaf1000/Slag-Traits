@@ -1,0 +1,7 @@
+{
+  "material": "slag:obsidian",
+  "traits": [
+    { "id": "slagtraits:fire_resistant", "tier": 1 },
+    { "id": "slagtraits:fragmenting", "tier": 3 }
+  ]
+}

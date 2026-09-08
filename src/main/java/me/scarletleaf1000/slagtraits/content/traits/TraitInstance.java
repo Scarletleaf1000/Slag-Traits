@@ -7,17 +7,17 @@ import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.ResourceLocation;
 
-public record TraitInstance(ResourceLocation id, Float modifier) {
+public record TraitInstance(ResourceLocation id, int tier) {
     public static final Codec<TraitInstance> CODEC = RecordCodecBuilder.create(instance ->
             instance.group(
                     ResourceLocation.CODEC.fieldOf("id").forGetter(TraitInstance::id),
-                    Codec.FLOAT.fieldOf("modifier").forGetter(TraitInstance::modifier)
+                    Codec.INT.fieldOf("tier").forGetter(TraitInstance::tier)
             ).apply(instance, TraitInstance::new)
     );
 
     public static final StreamCodec<ByteBuf, TraitInstance> STREAM_CODEC = StreamCodec.composite(
             ResourceLocation.STREAM_CODEC, TraitInstance::id,
-            ByteBufCodecs.FLOAT, TraitInstance::modifier,
+            ByteBufCodecs.VAR_INT, TraitInstance::tier,
             TraitInstance::new
     );
 }

@@ -1,15 +1,13 @@
 package me.scarletleaf1000.slagtraits.content.traits.implementation;
 
-
 import me.scarletleaf1000.slagtraits.content.traits.ISlagTrait;
-import me.scarletleaf1000.slagtraits.util.TraitUtils;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 
-public class ReinforcedTrait implements ISlagTrait {
+public class FireResistantTrait implements ISlagTrait {
     @Override
-    public Component getTooltipLine(float modifier) {
-        return Component.translatable("trait.slagtraits.reinforced", TraitUtils.formatModifier(modifier))
+    public Component getTooltipLine(int tier) {
+        return Component.translatable("trait.slagtraits.fire_resistant")
                 .withStyle(ChatFormatting.GRAY);
     }
 }
