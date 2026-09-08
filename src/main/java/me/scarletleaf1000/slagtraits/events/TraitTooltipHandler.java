@@ -24,6 +24,9 @@ public class TraitTooltipHandler {
         ItemStack stack = event.getItemStack();
         if (!(stack.getItem() instanceof IModularItem)) return;
 
+        List<Pair<ISlagTrait, Float>> traits = TraitUtils.getTraits(stack);
+        if (traits.isEmpty()) return;
+
         List<Component> tooltip = event.getToolTip();
         List<Component> lines = new ArrayList<>();
 
@@ -32,9 +35,6 @@ public class TraitTooltipHandler {
                             Component.literal("Alt").withStyle(ChatFormatting.GRAY))
                     .withStyle(ChatFormatting.DARK_GRAY));
         } else {
-            List<Pair<ISlagTrait, Float>> traits = TraitUtils.getTraits(stack);
-            if (traits.isEmpty()) return;
-
             lines.add(Component.translatable("tooltip.slagtraits.traits_header")
                     .withStyle(ChatFormatting.GOLD));
             for (var pair : traits) {
@@ -48,7 +48,7 @@ public class TraitTooltipHandler {
         tooltip.addAll(Math.min(1, tooltip.size()), lines);
 
         if (Screen.hasAltDown()) {
-            for (var pair : TraitUtils.getTraits(stack))
+            for (var pair : traits)
                 pair.getFirst().appendTooltip(event, stack, tooltip, pair.getSecond());
         }
     }
