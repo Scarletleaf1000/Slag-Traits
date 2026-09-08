@@ -1,0 +1,6 @@
+{
+  "material": "slag:golden",
+  "traits": [
+    { "id": "slagtraits:polished", "tier": 4 }
+  ]
+}

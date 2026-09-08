@@ -1,0 +1,6 @@
+{
+  "material": "slag:copper",
+  "traits": [
+    { "id": "slagtraits:polished", "tier": 1 }
+  ]
+}

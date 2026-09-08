@@ -1,0 +1,7 @@
+{
+  "material": "slag:amethyst",
+  "traits": [
+    { "id": "slagtraits:regrowing", "tier": 2 },
+    { "id": "slagtraits:bejeweled", "tier": 1 }
+  ]
+}

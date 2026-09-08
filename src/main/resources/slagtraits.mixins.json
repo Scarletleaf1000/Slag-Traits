@@ -1,0 +1,14 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "me.scarletleaf1000.slagtraits.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "refmap": "slagtraits.refmap.json",
+  "mixins": [
+    "IDynamicPartMixin",
+    "ItemStackMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

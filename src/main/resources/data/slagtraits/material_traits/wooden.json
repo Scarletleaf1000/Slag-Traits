@@ -1,0 +1,6 @@
+{
+  "material": "slag:wooden",
+  "traits": [
+    { "id": "slagtraits:regrowing", "tier": 4 }
+  ]
+}

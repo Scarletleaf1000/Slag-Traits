@@ -1,0 +1,6 @@
+{
+  "material": "slag:diamond",
+  "traits": [
+    { "id": "slagtraits:bejeweled", "tier": 5 }
+  ]
+}
