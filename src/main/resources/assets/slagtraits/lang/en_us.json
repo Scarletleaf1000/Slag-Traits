@@ -1,5 +1,6 @@
 {
   "tooltip.slagtraits.traits_header": "Traits:",
+  "tooltip.slagtraits.hold_alt": "Hold [%s] for Traits",
   "trait.slagtraits.reinforced": "Reinforced %s",
   "trait.slagtraits.missing": "Unknown Trait %s"
 }
