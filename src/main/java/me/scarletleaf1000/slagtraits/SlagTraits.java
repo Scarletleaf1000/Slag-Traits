@@ -1,9 +1,6 @@
 package me.scarletleaf1000.slagtraits;
 
 import com.mojang.logging.LogUtils;
-import me.scarletleaf1000.slagtraits.content.traits.data.MaterialTraitReloadListener;
-import me.scarletleaf1000.slagtraits.network.SyncMaterialTraitsS2C;
-import me.scarletleaf1000.slagtraits.register.AllTraits;
 import net.minecraft.client.Minecraft;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.IEventBus;
@@ -15,11 +12,10 @@ import net.neoforged.fml.config.ModConfig;
 import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
 import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.neoforged.neoforge.common.NeoForge;
-import net.neoforged.neoforge.event.AddReloadListenerEvent;
 import net.neoforged.neoforge.event.BuildCreativeModeTabContentsEvent;
 import net.neoforged.neoforge.event.server.ServerStartingEvent;
-import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 import org.slf4j.Logger;
+
 
 // The value here should match an entry in the META-INF/neoforge.mods.toml file
 @Mod(SlagTraits.MOD_ID)
@@ -34,9 +30,6 @@ public class SlagTraits {
     public SlagTraits(IEventBus modEventBus, ModContainer modContainer) {
         // Register the commonSetup method for modloading
         modEventBus.addListener(this::commonSetup);
-        modEventBus.addListener(SlagTraits::onRegisterPayloads);
-
-        AllTraits.register();
 
         // Register ourselves for server and other game events we are interested in.
         // Note that this is necessary if and only if we want *this* class (Slagtraits) to respond directly to events.
@@ -64,18 +57,6 @@ public class SlagTraits {
     public void onServerStarting(ServerStartingEvent event) {
         // Do something when the server starts
         LOGGER.info("HELLO from server starting");
-    }
-
-    @SubscribeEvent
-    public void onAddReloadListeners(AddReloadListenerEvent event) {
-        event.addListener(new MaterialTraitReloadListener());
-    }
-    public static void onRegisterPayloads(RegisterPayloadHandlersEvent event) {
-        event.registrar("1").playToClient(
-                SyncMaterialTraitsS2C.TYPE,
-                SyncMaterialTraitsS2C.STREAM_CODEC,
-                SyncMaterialTraitsS2C::handle
-        );
     }
 
 
