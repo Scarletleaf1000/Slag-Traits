@@ -4,7 +4,7 @@ import me.scarletleaf1000.slagtraits.SlagTraits;
 import net.minecraft.resources.ResourceLocation;
 
 public class TraitEffects {
-    public static final ResourceLocation REPAIR_ITEM = new ResourceLocation(SlagTraits.MOD_ID, "repair_item");
+    public static final ResourceLocation REPAIR_ITEM = ResourceLocation.fromNamespaceAndPath(SlagTraits.MOD_ID, "repair_item");
 
     public static void register() {
         TraitEffectRegistry.register(REPAIR_ITEM, ((holder, tool, effect, event) -> {
