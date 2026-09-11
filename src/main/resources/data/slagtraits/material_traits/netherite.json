@@ -1,7 +1,0 @@
-{
-  "material": "slag:netherite",
-  "traits": [
-    { "id": "slagtraits:fire_resistant", "tier": 1 },
-    { "id": "slagtraits:sturdy", "tier": 4 }
-  ]
-}

@@ -1,6 +1,0 @@
-{
-  "material": "slag:flint",
-  "traits": [
-    { "id": "slagtraits:fragmenting", "tier": 1 }
-  ]
-}

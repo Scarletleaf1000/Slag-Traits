@@ -3,12 +3,12 @@
   "display_name": "Regrowing",
   "description": "Slowly repairs the tool while held.",
   "equipment_type": "tool",
-  "max_level": 3,
+  "max_level": 5,
   "triggers": [
     {
       "event": "on_tick",
       "condition": "always",
-      "chance": 0.01,
+      "chance": 1.0,
       "effect": {
         "type": "slagtraits:repair_item",
         "parameters": {
