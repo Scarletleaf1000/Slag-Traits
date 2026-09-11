@@ -6,7 +6,8 @@ import net.minecraft.util.StringRepresentable;
 public enum EquipmentType implements StringRepresentable {
     TOOL("tool"),
     ARMOR("armor"),
-    BOTH("both");
+    BOTH("both"),
+    NONE("none");
 
     private final String name;
 

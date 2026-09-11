@@ -14,6 +14,8 @@ import net.minecraft.world.item.*;
 
 import java.util.*;
 
+import static me.scarletleaf1000.slagtraits.integration.EquipmentClassifier.getEquipmentType;
+
 public class TraitResolver {
 
     public static List<ActiveTrait> getActiveTraits(ItemStack stack) {
@@ -50,14 +52,8 @@ public class TraitResolver {
     }
 
     private static boolean matches(EquipmentType traitType, EquipmentType stackType) {
+        if (traitType == EquipmentType.NONE || stackType == EquipmentType.NONE) return false;
         return traitType == EquipmentType.BOTH || stackType == EquipmentType.BOTH || traitType == stackType;
-    }
-
-    private static EquipmentType getEquipmentType(ItemStack stack) {
-        Item item = stack.getItem();
-        if (item instanceof ArmorItem) return EquipmentType.ARMOR;
-        if (item instanceof DiggerItem || item instanceof SwordItem || item instanceof ShearsItem || item instanceof TridentItem) return EquipmentType.TOOL;
-        return EquipmentType.BOTH; // fallback
     }
 
     public static boolean test(String condition, LivingEntity holder, ItemStack tool, Object event) {
