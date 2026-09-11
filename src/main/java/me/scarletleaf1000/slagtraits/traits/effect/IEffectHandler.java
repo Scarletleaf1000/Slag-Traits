@@ -5,5 +5,5 @@ import net.minecraft.world.item.ItemStack;
 
 @FunctionalInterface
 public interface IEffectHandler {
-    void apply(LivingEntity holder, ItemStack tool, TraitEffect effect, Object event);
+    void apply(LivingEntity holder, ItemStack tool, TraitEffect effect, Object event, int tier);
 }

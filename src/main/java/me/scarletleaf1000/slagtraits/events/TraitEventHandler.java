@@ -76,7 +76,7 @@ public class TraitEventHandler {
                 if (!trigger.getEvent().equalsIgnoreCase(eventId)) continue;
                 if (ThreadLocalRandom.current().nextFloat() < trigger.getChance()){
                     if (TraitResolver.test(trigger.getCondition(), holder, tool, event)) {
-                        TraitEffectRegistry.apply(trigger.getEffect(), holder, tool, event);
+                        TraitEffectRegistry.apply(trigger.getEffect(), holder, tool, event, tier);
                     }
                 }
             }

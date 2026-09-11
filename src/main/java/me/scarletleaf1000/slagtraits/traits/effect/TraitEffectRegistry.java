@@ -14,10 +14,10 @@ public class TraitEffectRegistry {
         HANDLERS.put(type, handler);
     }
 
-    public static void apply(TraitEffect effect, LivingEntity holder, ItemStack tool, Object event) {
+    public static void apply(TraitEffect effect, LivingEntity holder, ItemStack tool, Object event, int tier) {
         IEffectHandler handler = HANDLERS.get(effect.getType());
         if (handler != null) {
-            handler.apply(holder, tool, effect, event);
+            handler.apply(holder, tool, effect, event, tier);
         }
     }
 }
