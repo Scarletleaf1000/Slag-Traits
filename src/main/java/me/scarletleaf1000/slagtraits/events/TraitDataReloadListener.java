@@ -26,10 +26,16 @@ public class TraitDataReloadListener extends SimpleJsonResourceReloadListener {
         Map<ResourceLocation, Trait> traits = new HashMap<>();
         for (Map.Entry<ResourceLocation, JsonElement> entry : data.entrySet()) {
             if (!entry.getValue().isJsonObject()) continue;
-            Trait.TRAIT_CODEC.parse(JsonOps.INSTANCE, entry.getValue())
-                    .result()
-                    .ifPresent(trait -> traits.put(trait.getId(), trait));
+            var result = Trait.TRAIT_CODEC.parse(JsonOps.INSTANCE, entry.getValue());
+            if (result.result().isPresent()) {
+                Trait trait = result.result().get();
+                traits.put(trait.getId(), trait);
+                SlagTraits.LOGGER.info("[TraitReload] loaded trait id={} from {}", trait.getId(), entry.getKey());
+            } else {
+                SlagTraits.LOGGER.error("[TraitReload] failed to parse trait {}: {}", entry.getKey(), result.error().map(Object::toString).orElse("unknown error"));
+            }
         }
         TraitDataManager.setTraits(traits);
+        SlagTraits.LOGGER.info("[TraitReload] total traits loaded: {}", traits.size());
     }
 }

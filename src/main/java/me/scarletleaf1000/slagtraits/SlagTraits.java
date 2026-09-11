@@ -3,6 +3,8 @@ package me.scarletleaf1000.slagtraits;
 import com.mojang.logging.LogUtils;
 import me.scarletleaf1000.slagtraits.events.MaterialTraitDataReloadListener;
 import me.scarletleaf1000.slagtraits.events.TraitDataReloadListener;
+import me.scarletleaf1000.slagtraits.events.TraitEventHandler;
+import me.scarletleaf1000.slagtraits.register.TraitEffects;
 import net.minecraft.client.Minecraft;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.IEventBus;
@@ -33,6 +35,9 @@ public class SlagTraits {
     public SlagTraits(IEventBus modEventBus, ModContainer modContainer) {
         // Register the commonSetup method for modloading
         modEventBus.addListener(this::commonSetup);
+
+        TraitEffects.register();
+        new TraitEventHandler();
 
         // Register ourselves for server and other game events we are interested in.
         // Note that this is necessary if and only if we want *this* class (Slagtraits) to respond directly to events.

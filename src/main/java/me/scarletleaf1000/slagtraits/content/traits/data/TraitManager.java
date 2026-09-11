@@ -3,6 +3,7 @@ package me.scarletleaf1000.slagtraits.content.traits.data;
 import me.scarletleaf1000.slagtraits.SlagTraits;
 import me.scarletleaf1000.slagtraits.content.traits.EquipmentType;
 import me.scarletleaf1000.slagtraits.content.traits.Trait;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.*;
@@ -20,20 +21,34 @@ public class TraitManager {
         List<Trait> result = new ArrayList<>();
         Set<ResourceLocation> seen = new HashSet<>();
         EquipmentType type = getEquipmentType(stack);
+        ResourceLocation itemId = BuiltInRegistries.ITEM.getKey(stack.getItem());
+        List<ResourceLocation> materials = MaterialAdapter.getMaterials(stack);
 
-        for (ResourceLocation material : MaterialAdapter.getMaterials(stack)) {
-            for (MaterialTraitData.TraitRef ref : MaterialTraitManager.getTraits(material)) {
+        SlagTraits.LOGGER.debug("[TraitManager] resolving item={} equipmentType={} materials={}", itemId, type, materials);
+
+        for (ResourceLocation material : materials) {
+            List<MaterialTraitData.TraitRef> refs = MaterialTraitManager.getTraits(material);
+            SlagTraits.LOGGER.debug("[TraitManager] material={} traitRefs={}", material, refs.size());
+            for (MaterialTraitData.TraitRef ref : refs) {
                 Trait trait = TraitDataManager.get(ref.id());
-                if (trait == null) continue;
+                if (trait == null) {
+                    SlagTraits.LOGGER.warn("[TraitManager] missing trait data for id={} on material={}", ref.id(), material);
+                    continue;
+                }
                 if (seen.contains(trait.getId())) continue;
 
                 // Filter by equipment type
-                if (!matches(trait.getEquipmentType(), type)) continue;
+                if (!matches(trait.getEquipmentType(), type)) {
+                    SlagTraits.LOGGER.debug("[TraitManager] skipping trait={} (traitType={} vs stackType={})", trait.getId(), trait.getEquipmentType(), type);
+                    continue;
+                }
 
                 result.add(trait);
                 seen.add(trait.getId());
+                SlagTraits.LOGGER.debug("[TraitManager] added trait={}", trait.getId());
             }
         }
+        SlagTraits.LOGGER.debug("[TraitManager] resolved item={} activeTraits={}", itemId, result.size());
         return result;
     }
 
