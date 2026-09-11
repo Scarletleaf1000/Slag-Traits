@@ -1,6 +1,0 @@
-{
-  "material": "slag:stone",
-  "traits": [
-    { "id": "slagtraits:endolithic", "tier": 1 }
-  ]
-}

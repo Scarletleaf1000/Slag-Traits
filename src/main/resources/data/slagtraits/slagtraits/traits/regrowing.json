@@ -1,0 +1,25 @@
+{
+  "id": "slagtraits:regrowing",
+  "display_name": "Regrowing",
+  "description": "Slowly repairs the tool while held.",
+  "equipment_type": "tool",
+  "max_level": 5,
+  "triggers": [
+    {
+      "event": "on_tick",
+      "condition": "always",
+      "chance": 0.001,
+      "effect": {
+        "type": "slagtraits:repair_item",
+        "parameters": {
+          "amount": 1
+        }
+      }
+    }
+  ],
+  "modifier": false,
+  "base_cost": 0,
+  "scaling_multiplier": 1,
+  "hidden": false,
+  "color": 65280
+}

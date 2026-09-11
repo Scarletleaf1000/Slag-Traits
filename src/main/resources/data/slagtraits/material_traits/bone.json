@@ -1,6 +1,0 @@
-{
-  "material": "slag:bone",
-  "traits": [
-    { "id": "slagtraits:fragmenting", "tier": 2 }
-  ]
-}

@@ -1,182 +1,98 @@
 package me.scarletleaf1000.slagtraits.events;
 
-import com.mojang.datafixers.util.Pair;
 import me.scarletleaf1000.slagtraits.SlagTraits;
-import me.scarletleaf1000.slagtraits.content.traits.ISlagTrait;
-import me.scarletleaf1000.slagtraits.util.TraitUtils;
+import me.scarletleaf1000.slagtraits.content.traits.Trait;
+import me.scarletleaf1000.slagtraits.content.traits.TraitEffect;
+import me.scarletleaf1000.slagtraits.content.traits.Trigger;
+import net.minecraft.core.registries.BuiltInRegistries;
+import me.scarletleaf1000.slagtraits.content.traits.data.TraitManager;
+import me.scarletleaf1000.slagtraits.register.TraitEffectRegistry;
+import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.bus.api.SubscribeEvent;
-import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.entity.living.LivingDamageEvent;
-import net.neoforged.neoforge.event.entity.living.LivingDeathEvent;
-import net.neoforged.neoforge.event.entity.living.LivingEntityUseItemEvent;
-import net.neoforged.neoforge.event.entity.living.LivingEquipmentChangeEvent;
-import net.neoforged.neoforge.event.entity.living.LivingIncomingDamageEvent;
-import net.neoforged.neoforge.event.entity.player.ArrowLooseEvent;
-import net.neoforged.neoforge.event.entity.player.CriticalHitEvent;
-import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
-import net.neoforged.neoforge.event.entity.player.PlayerXpEvent;
 import net.neoforged.neoforge.event.level.BlockEvent;
 import net.neoforged.neoforge.event.tick.PlayerTickEvent;
 
-import java.util.function.BiConsumer;
+import java.util.List;
+import java.util.Random;
+import java.util.concurrent.ThreadLocalRandom;
 
-@EventBusSubscriber(modid = SlagTraits.MOD_ID)
 public class TraitEventHandler {
 
-    /** Calls {@code action} once per (trait, stack) pair found on the entity's held item. */
-    private static void forHeldItem(LivingEntity entity, BiConsumer<ISlagTrait, HeldContext> action) {
-        ItemStack stack = entity.getMainHandItem();
-        for (Pair<ISlagTrait, Integer> pair : TraitUtils.getTraits(stack))
-            action.accept(pair.getFirst(), new HeldContext(stack, pair.getSecond()));
+    public TraitEventHandler() {
+        NeoForge.EVENT_BUS.register(this);
     }
 
-    /** Calls {@code action} once per (trait, stack) pair across ALL equipment slots (armor + hands). */
-    private static void forAllEquipment(LivingEntity entity, BiConsumer<ISlagTrait, HeldContext> action) {
-        for (ItemStack stack : entity.getAllSlots())
-            for (Pair<ISlagTrait, Integer> pair : TraitUtils.getTraits(stack))
-                action.accept(pair.getFirst(), new HeldContext(stack, pair.getSecond()));
-    }
-
-    /** The stack a trait was resolved from plus its tier, so lambdas stay readable. */
-    private record HeldContext(ItemStack stack, int tier) {}
-
-    // ---- Mining / block interaction ----
-
+    // Called every tick for the player
     @SubscribeEvent
-    public static void onBreakSpeed(PlayerEvent.BreakSpeed event) {
-        forHeldItem(event.getEntity(), (trait, ctx) ->
-                trait.onBreakSpeed(event, ctx.stack(), ctx.tier()));
+    public void onPlayerTick(PlayerTickEvent.Post event) {
+        dispatchForAllEquipment("on_tick", event.getEntity(), event);
     }
 
     @SubscribeEvent
-    public static void onHarvestCheck(PlayerEvent.HarvestCheck event) {
-        forHeldItem(event.getEntity(), (trait, ctx) ->
-                trait.onHarvestCheck(event, ctx.stack(), ctx.tier()));
+    public void onLivingDamagePre(LivingDamageEvent.Pre event) {
+        if (event.getSource().getEntity() instanceof LivingEntity attacker) {
+            dispatch("on_attack_entity_pre", attacker, attacker.getMainHandItem(), event);
+        }
+        dispatchForArmor("on_hurt_pre", event.getEntity(), event);
     }
 
     @SubscribeEvent
-    public static void onBlockBreak(BlockEvent.BreakEvent event) {
-        forHeldItem(event.getPlayer(), (trait, ctx) ->
-                trait.onBlockBreak(event, ctx.stack(), ctx.tier()));
+    public void onLivingDamagePost(LivingDamageEvent.Post event) {
+        if (event.getSource().getEntity() instanceof LivingEntity attacker) {
+            dispatch("on_attack_entity", attacker, attacker.getMainHandItem(), event);
+        }
+        dispatchForArmor("on_hurt", event.getEntity(), event);
     }
 
-    // ---- Combat (attacker side) ----
-
+    // Breaking a block
     @SubscribeEvent
-    public static void onDamageDealt(LivingDamageEvent.Pre event) {
-        // damage events fire for the VICTIM — the attacker is the damage source entity:
-        if (!(event.getSource().getEntity() instanceof LivingEntity attacker)) return;
-        forHeldItem(attacker, (trait, ctx) ->
-                trait.onDamageDealt(event, ctx.stack(), ctx.tier()));
+    public void onBlockBreak(BlockEvent.BreakEvent event) {
+        if (event.getPlayer() instanceof LivingEntity player) {
+            dispatch("on_block_break", player, player.getMainHandItem(), event);
+        }
     }
 
+    // Using an item
     @SubscribeEvent
-    public static void onCriticalHit(CriticalHitEvent event) {
-        forHeldItem(event.getEntity(), (trait, ctx) ->
-                trait.onCriticalHit(event, ctx.stack(), ctx.tier()));
+    public void onRightClickItem(PlayerInteractEvent.RightClickItem event) {
+        dispatch("on_item_use", event.getEntity(), event.getItemStack(), event);
     }
 
-    @SubscribeEvent
-    public static void onKill(LivingDeathEvent event) {
-        if (!(event.getSource().getEntity() instanceof LivingEntity killer)) return;
-        forHeldItem(killer, (trait, ctx) ->
-                trait.onKill(event, ctx.stack(), ctx.tier()));
+    // Central dispatch
+    private void dispatch(String eventId, LivingEntity holder, ItemStack tool, Object event) {
+        if (tool.isEmpty()) return;
+        if (holder.level().isClientSide()) return;
+
+        List<Trait> traits = TraitManager.getActiveTraits(tool);
+        SlagTraits.LOGGER.debug("[TraitEvent] event={} item={} activeTraits={}", eventId, BuiltInRegistries.ITEM.getKey(tool.getItem()), traits.size());
+        if (traits.isEmpty()) return;
+
+        for (Trait trait : traits) {
+            for (Trigger trigger : trait.getTriggers()) {
+                if (!trigger.getEvent().equalsIgnoreCase(eventId)) continue;
+                if (ThreadLocalRandom.current().nextFloat() < trigger.getChance()){
+                    if (TraitManager.test(trigger.getCondition(), holder, tool, event)) {
+                        TraitEffectRegistry.apply(trigger.getEffect(), holder, tool, event);
+                    }
+                }
+            }
+        }
     }
 
-    @SubscribeEvent
-    public static void onArrowLoose(ArrowLooseEvent event) {
-        ItemStack bow = event.getBow();
-        for (Pair<ISlagTrait, Integer> pair : TraitUtils.getTraits(bow))
-            pair.getFirst().onArrowLoose(event, bow, pair.getSecond());
+    private void dispatchForAllEquipment(String eventId, LivingEntity holder, Object event) {
+        dispatch(eventId, holder, holder.getItemBySlot(EquipmentSlot.MAINHAND), event);
+        dispatch(eventId, holder, holder.getItemBySlot(EquipmentSlot.OFFHAND), event);
+        dispatchForArmor(eventId, holder, event);
     }
 
-    // ---- Combat (defender side) — check all equipment, not just the hand ----
-
-    @SubscribeEvent
-    public static void onDamageIncoming(LivingIncomingDamageEvent event) {
-        forAllEquipment(event.getEntity(), (trait, ctx) ->
-                trait.onDamageIncoming(event, ctx.stack(), ctx.tier()));
-    }
-
-    @SubscribeEvent
-    public static void onDamageTaken(LivingDamageEvent.Pre event) {
-        forAllEquipment(event.getEntity(), (trait, ctx) ->
-                trait.onDamageTaken(event, ctx.stack(), ctx.tier()));
-    }
-
-    @SubscribeEvent
-    public static void onDeath(LivingDeathEvent event) {
-        forAllEquipment(event.getEntity(), (trait, ctx) ->
-                trait.onDeath(event, ctx.stack(), ctx.tier()));
-    }
-
-    // ---- Item use / interaction ----
-
-    @SubscribeEvent
-    public static void onRightClickItem(PlayerInteractEvent.RightClickItem event) {
-        ItemStack stack = event.getItemStack();
-        for (Pair<ISlagTrait, Integer> pair : TraitUtils.getTraits(stack))
-            pair.getFirst().onRightClickItem(event, stack, pair.getSecond());
-    }
-
-    @SubscribeEvent
-    public static void onRightClickBlock(PlayerInteractEvent.RightClickBlock event) {
-        ItemStack stack = event.getItemStack();
-        for (Pair<ISlagTrait, Integer> pair : TraitUtils.getTraits(stack))
-            pair.getFirst().onRightClickBlock(event, stack, pair.getSecond());
-    }
-
-    @SubscribeEvent
-    public static void onLeftClickBlock(PlayerInteractEvent.LeftClickBlock event) {
-        ItemStack stack = event.getItemStack();
-        for (Pair<ISlagTrait, Integer> pair : TraitUtils.getTraits(stack))
-            pair.getFirst().onLeftClickBlock(event, stack, pair.getSecond());
-    }
-
-    @SubscribeEvent
-    public static void onEntityInteract(PlayerInteractEvent.EntityInteract event) {
-        ItemStack stack = event.getItemStack();
-        for (Pair<ISlagTrait, Integer> pair : TraitUtils.getTraits(stack))
-            pair.getFirst().onEntityInteract(event, stack, pair.getSecond());
-    }
-
-    @SubscribeEvent
-    public static void onItemUseTick(LivingEntityUseItemEvent.Tick event) {
-        ItemStack stack = event.getItem();
-        for (Pair<ISlagTrait, Integer> pair : TraitUtils.getTraits(stack))
-            pair.getFirst().onItemUseTick(event, stack, pair.getSecond());
-    }
-
-    @SubscribeEvent
-    public static void onItemUseFinish(LivingEntityUseItemEvent.Finish event) {
-        ItemStack stack = event.getItem();
-        for (Pair<ISlagTrait, Integer> pair : TraitUtils.getTraits(stack))
-            pair.getFirst().onItemUseFinish(event, stack, pair.getSecond());
-    }
-
-    // ---- Lifecycle / passive ----
-
-    @SubscribeEvent
-    public static void onPlayerTick(PlayerTickEvent.Post event) {
-        forHeldItem(event.getEntity(), (trait, ctx) ->
-                trait.onPlayerTick(event, ctx.stack(), ctx.tier()));
-    }
-
-    @SubscribeEvent
-    public static void onEquipmentChange(LivingEquipmentChangeEvent event) {
-        // only the newly equipped stack — traits on the removed item shouldn't fire "equip" logic
-        ItemStack stack = event.getTo();
-        for (Pair<ISlagTrait, Integer> pair : TraitUtils.getTraits(stack))
-            pair.getFirst().onEquipmentChange(event, stack, pair.getSecond());
-    }
-
-    @SubscribeEvent
-    public static void onXpPickup(PlayerXpEvent.PickupXp event) {
-        forHeldItem(event.getEntity(), (trait, ctx) ->
-                trait.onXpPickup(event, ctx.stack(), ctx.tier()));
+    private void dispatchForArmor(String eventId, LivingEntity holder, Object event) {
+        for (ItemStack armorStack : holder.getArmorSlots()) {
+            dispatch(eventId, holder, armorStack, event);
+        }
     }
 }

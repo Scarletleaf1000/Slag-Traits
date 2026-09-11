@@ -1,6 +1,0 @@
-{
-  "material": "slag:deep_alloy",
-  "traits": [
-    { "id": "slagtraits:fire_resistant", "tier": 1 }
-  ]
-}

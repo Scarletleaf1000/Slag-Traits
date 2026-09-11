@@ -1,6 +1,0 @@
-{
-  "material": "slag:iron",
-  "traits": [
-    { "id": "slagtraits:sturdy", "tier": 2 }
-  ]
-}

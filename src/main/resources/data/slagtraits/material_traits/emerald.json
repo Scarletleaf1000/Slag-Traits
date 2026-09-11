@@ -1,7 +1,0 @@
-{
-  "material": "slag:emerald",
-  "traits": [
-    { "id": "slagtraits:bejeweled", "tier": 3 },
-    { "id": "slagtraits:experienced", "tier": 1 }
-  ]
-}

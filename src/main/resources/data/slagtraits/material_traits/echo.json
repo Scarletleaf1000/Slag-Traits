@@ -1,7 +1,0 @@
-{
-  "material": "slag:echo",
-  "traits": [
-    { "id": "slagtraits:regrowing", "tier": 1 },
-    { "id": "slagtraits:endolithic", "tier": 3 }
-  ]
-}
