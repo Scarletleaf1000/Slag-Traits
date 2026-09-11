@@ -7,6 +7,7 @@ import me.scarletleaf1000.slagtraits.traits.resolver.TraitResolver;
 import me.scarletleaf1000.slagtraits.traits.effect.TraitEffectRegistry;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.neoforge.common.NeoForge;
@@ -27,7 +28,7 @@ public class TraitEventHandler {
     // Called every tick for the player
     @SubscribeEvent
     public void onPlayerTick(PlayerTickEvent.Post event) {
-        dispatchForAllEquipment("on_tick", event.getEntity(), event);
+        dispatchForAllItems("on_tick", event.getEntity(), event);
     }
 
     @SubscribeEvent
@@ -92,5 +93,15 @@ public class TraitEventHandler {
         for (ItemStack armorStack : holder.getArmorSlots()) {
             dispatch(eventId, holder, armorStack, event);
         }
+    }
+
+    private void dispatchForAllItems(String eventId, LivingEntity holder, Object event) {
+        if (holder instanceof Player p) {
+            for (ItemStack stack : p.getInventory().items) {
+                dispatch(eventId, holder, stack, event);
+            }
+            return;
+        }
+        dispatchForAllEquipment(eventId, holder, event);
     }
 }
