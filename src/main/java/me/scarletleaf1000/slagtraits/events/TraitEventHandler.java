@@ -1,5 +1,10 @@
 package me.scarletleaf1000.slagtraits.events;
 
+import me.scarletleaf1000.slagtraits.content.traits.Trait;
+import me.scarletleaf1000.slagtraits.content.traits.TraitEffect;
+import me.scarletleaf1000.slagtraits.content.traits.Trigger;
+import me.scarletleaf1000.slagtraits.content.traits.data.TraitManager;
+import me.scarletleaf1000.slagtraits.register.TraitEffectRegistry;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
@@ -9,6 +14,9 @@ import net.neoforged.neoforge.event.entity.living.LivingDamageEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
 import net.neoforged.neoforge.event.level.BlockEvent;
 import net.neoforged.neoforge.event.tick.PlayerTickEvent;
+
+import java.util.List;
+import java.util.Random;
 
 public class TraitEventHandler {
 
@@ -54,12 +62,23 @@ public class TraitEventHandler {
 
     // Central dispatch
     private void dispatch(String eventId, LivingEntity holder, ItemStack tool, Object event) {
-        // 1. Get active traits for the tool
-        // 2. For each trait, check triggers
-        //    - match trigger.event == eventId
-        //    - roll trigger.chance
-        //    - test trigger.condition with ConditionRegistry
-        // 3. If all pass, call TraitEffectRegistry.apply(...)
+        if (tool.isEmpty()) return;
+
+        List<Trait> traits = TraitManager.getActiveTraits(tool);
+        if (traits.isEmpty()) return;
+
+        for (Trait trait : traits) {
+            for (Trigger trigger : trait.getTriggers()) {
+                if (!trigger.getEvent().equalsIgnoreCase(eventId)) continue;
+                Random random = new Random();
+                float f = random.nextFloat(0.0f, 1.0f);
+                if (f < trigger.getChance()){
+                    if (TraitManager.test(trigger.getCondition(), holder, tool, event)) {
+                        TraitEffectRegistry.apply(trigger.getEffect(), holder, tool, event);
+                    }
+                }
+            }
+        }
     }
 
     private void dispatchForAllEquipment(String eventId, LivingEntity holder, Object event) {

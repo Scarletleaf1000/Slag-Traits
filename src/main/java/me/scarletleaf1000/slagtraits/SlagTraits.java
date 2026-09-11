@@ -1,6 +1,8 @@
 package me.scarletleaf1000.slagtraits;
 
 import com.mojang.logging.LogUtils;
+import me.scarletleaf1000.slagtraits.events.MaterialTraitDataReloadListener;
+import me.scarletleaf1000.slagtraits.events.TraitDataReloadListener;
 import net.minecraft.client.Minecraft;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.IEventBus;
@@ -12,6 +14,7 @@ import net.neoforged.fml.config.ModConfig;
 import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
 import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.neoforged.neoforge.common.NeoForge;
+import net.neoforged.neoforge.event.AddReloadListenerEvent;
 import net.neoforged.neoforge.event.BuildCreativeModeTabContentsEvent;
 import net.neoforged.neoforge.event.server.ServerStartingEvent;
 import org.slf4j.Logger;
@@ -57,6 +60,12 @@ public class SlagTraits {
     public void onServerStarting(ServerStartingEvent event) {
         // Do something when the server starts
         LOGGER.info("HELLO from server starting");
+    }
+
+    @SubscribeEvent
+    public void onAddReloadListeners(AddReloadListenerEvent event) {
+        event.addListener(new TraitDataReloadListener());
+        event.addListener(new MaterialTraitDataReloadListener());
     }
 
 
