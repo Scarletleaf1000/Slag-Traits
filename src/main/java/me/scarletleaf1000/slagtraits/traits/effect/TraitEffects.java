@@ -1,4 +1,4 @@
-package me.scarletleaf1000.slagtraits.register;
+package me.scarletleaf1000.slagtraits.traits.effect;
 
 import me.scarletleaf1000.slagtraits.SlagTraits;
 import net.minecraft.resources.ResourceLocation;

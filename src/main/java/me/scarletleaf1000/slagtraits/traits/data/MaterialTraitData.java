@@ -1,4 +1,4 @@
-package me.scarletleaf1000.slagtraits.content.traits.data;
+package me.scarletleaf1000.slagtraits.traits.data;
 
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;

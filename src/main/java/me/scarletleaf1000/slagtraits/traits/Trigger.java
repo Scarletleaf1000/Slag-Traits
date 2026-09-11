@@ -1,7 +1,8 @@
-package me.scarletleaf1000.slagtraits.content.traits;
+package me.scarletleaf1000.slagtraits.traits;
 
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
+import me.scarletleaf1000.slagtraits.traits.effect.TraitEffect;
 
 public class Trigger {
     private final String event;

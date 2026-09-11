@@ -1,11 +1,11 @@
-package me.scarletleaf1000.slagtraits.events;
+package me.scarletleaf1000.slagtraits.client;
 
 import me.scarletleaf1000.slagtraits.SlagTraits;
-import me.scarletleaf1000.slagtraits.content.traits.Trait;
-import me.scarletleaf1000.slagtraits.content.traits.data.TraitManager;
+import me.scarletleaf1000.slagtraits.traits.ActiveTrait;
+import me.scarletleaf1000.slagtraits.traits.Trait;
+import me.scarletleaf1000.slagtraits.traits.resolver.TraitResolver;
 import me.scarletleaf1000.slagtraits.util.DisplayUtils;
 import net.minecraft.ChatFormatting;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
@@ -22,9 +22,8 @@ public class TraitTooltipHandler {
     @SubscribeEvent
     public static void onItemTooltip(ItemTooltipEvent event) {
         ItemStack stack = event.getItemStack();
-        List<Trait> traits = TraitManager.getActiveTraits(stack);
-        SlagTraits.LOGGER.debug("[TraitTooltip] item={} activeTraits={}", BuiltInRegistries.ITEM.getKey(stack.getItem()), traits.size());
-        if (traits.isEmpty()) return;
+        List<ActiveTrait> activeTraits = TraitResolver.getActiveTraits(stack);
+        if (activeTraits.isEmpty()) return;
 
         List<Component> tooltip = event.getToolTip();
         int insertAt = 1;
@@ -35,10 +34,12 @@ public class TraitTooltipHandler {
             tooltip.add(insertAt, header);
 
             int lineIndex = insertAt + 1;
-            for (Trait trait : traits) {
+            for (ActiveTrait activeTrait : activeTraits) {
+                Trait trait = activeTrait.trait();
+                int tier = activeTrait.tier();
                 if (trait.isHidden()) continue;
 
-                Component name = Component.literal(trait.getDisplayName());
+                Component name = Component.literal(trait.getDisplayName() + " " + DisplayUtils.intToRoman(tier));
                 name = name.copy().withStyle(Style.EMPTY.withColor(trait.getColor()));
 
                 tooltip.add(lineIndex, Component.literal("  ").append(name));

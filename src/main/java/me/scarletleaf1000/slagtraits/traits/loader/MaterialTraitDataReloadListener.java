@@ -1,11 +1,11 @@
-package me.scarletleaf1000.slagtraits.events;
+package me.scarletleaf1000.slagtraits.traits.loader;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.mojang.serialization.JsonOps;
 import me.scarletleaf1000.slagtraits.SlagTraits;
-import me.scarletleaf1000.slagtraits.content.traits.data.MaterialTraitData;
-import me.scarletleaf1000.slagtraits.content.traits.data.MaterialTraitManager;
+import me.scarletleaf1000.slagtraits.traits.data.MaterialTraitData;
+import me.scarletleaf1000.slagtraits.traits.data.MaterialTraitManager;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.server.packs.resources.SimpleJsonResourceReloadListener;

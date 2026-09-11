@@ -1,12 +1,10 @@
 package me.scarletleaf1000.slagtraits.events;
 
-import me.scarletleaf1000.slagtraits.SlagTraits;
-import me.scarletleaf1000.slagtraits.content.traits.Trait;
-import me.scarletleaf1000.slagtraits.content.traits.TraitEffect;
-import me.scarletleaf1000.slagtraits.content.traits.Trigger;
-import net.minecraft.core.registries.BuiltInRegistries;
-import me.scarletleaf1000.slagtraits.content.traits.data.TraitManager;
-import me.scarletleaf1000.slagtraits.register.TraitEffectRegistry;
+import me.scarletleaf1000.slagtraits.traits.ActiveTrait;
+import me.scarletleaf1000.slagtraits.traits.Trait;
+import me.scarletleaf1000.slagtraits.traits.Trigger;
+import me.scarletleaf1000.slagtraits.traits.resolver.TraitResolver;
+import me.scarletleaf1000.slagtraits.traits.effect.TraitEffectRegistry;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
@@ -18,7 +16,6 @@ import net.neoforged.neoforge.event.level.BlockEvent;
 import net.neoforged.neoforge.event.tick.PlayerTickEvent;
 
 import java.util.List;
-import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
 
 public class TraitEventHandler {
@@ -68,15 +65,16 @@ public class TraitEventHandler {
         if (tool.isEmpty()) return;
         if (holder.level().isClientSide()) return;
 
-        List<Trait> traits = TraitManager.getActiveTraits(tool);
-        SlagTraits.LOGGER.debug("[TraitEvent] event={} item={} activeTraits={}", eventId, BuiltInRegistries.ITEM.getKey(tool.getItem()), traits.size());
-        if (traits.isEmpty()) return;
+        List<ActiveTrait> activeTraits = TraitResolver.getActiveTraits(tool);
+        if (activeTraits.isEmpty()) return;
 
-        for (Trait trait : traits) {
+        for (ActiveTrait activeTrait : activeTraits) {
+            Trait trait = activeTrait.trait();
+            int tier = activeTrait.tier();
             for (Trigger trigger : trait.getTriggers()) {
                 if (!trigger.getEvent().equalsIgnoreCase(eventId)) continue;
                 if (ThreadLocalRandom.current().nextFloat() < trigger.getChance()){
-                    if (TraitManager.test(trigger.getCondition(), holder, tool, event)) {
+                    if (TraitResolver.test(trigger.getCondition(), holder, tool, event)) {
                         TraitEffectRegistry.apply(trigger.getEffect(), holder, tool, event);
                     }
                 }

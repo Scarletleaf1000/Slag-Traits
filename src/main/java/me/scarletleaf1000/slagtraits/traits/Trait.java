@@ -1,4 +1,4 @@
-package me.scarletleaf1000.slagtraits.content.traits;
+package me.scarletleaf1000.slagtraits.traits;
 
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
@@ -15,7 +15,7 @@ public class Trait {
     private final String displayName;
     private final String description;
     private final EquipmentType equipmentType;
-    private final int maxLevel;
+    private final int maxTier;
 
     private final List<Trigger> triggers;
 
@@ -42,7 +42,7 @@ public class Trait {
                     Codec.STRING.fieldOf("display_name").forGetter(Trait::getDisplayName),
                     Codec.STRING.fieldOf("description").forGetter(Trait::getDescription),
                     EquipmentType.CODEC.fieldOf("equipment_type").forGetter(Trait::getEquipmentType),
-                    Codec.INT.optionalFieldOf("max_level", 255).forGetter(Trait::getMaxLevel),
+                    Codec.INT.optionalFieldOf("max_tier", 255).forGetter(Trait::getMaxTier),
                     Codec.BOOL.optionalFieldOf("modifier", false).forGetter(Trait::isModifier),
                     Codec.INT.optionalFieldOf("base_cost", 0).forGetter(Trait::getBaseCostPerLevel),
                     Codec.FLOAT.optionalFieldOf("scaling_multiplier", 1f).forGetter(Trait::getScalingMultiplier),
@@ -60,7 +60,7 @@ public class Trait {
         this.displayName = displayName;
         this.description = description;
         this.equipmentType = type;
-        this.maxLevel = maxLevel;
+        this.maxTier = maxLevel;
         this.triggers = triggers != null ? triggers : new ArrayList<>();
 
         this.modifier = modifier;
@@ -100,8 +100,8 @@ public class Trait {
         return equipmentType;
     }
 
-    public int getMaxLevel() {
-        return maxLevel;
+    public int getMaxTier() {
+        return maxTier;
     }
 
     public List<Trigger> getTriggers() {

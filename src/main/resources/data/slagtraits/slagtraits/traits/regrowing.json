@@ -3,7 +3,7 @@
   "display_name": "Regrowing",
   "description": "Slowly repairs the tool while held.",
   "equipment_type": "tool",
-  "max_level": 5,
+  "max_tier": 5,
   "triggers": [
     {
       "event": "on_tick",

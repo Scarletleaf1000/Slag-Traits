@@ -1,10 +1,10 @@
 package me.scarletleaf1000.slagtraits;
 
 import com.mojang.logging.LogUtils;
-import me.scarletleaf1000.slagtraits.events.MaterialTraitDataReloadListener;
-import me.scarletleaf1000.slagtraits.events.TraitDataReloadListener;
+import me.scarletleaf1000.slagtraits.traits.loader.MaterialTraitDataReloadListener;
+import me.scarletleaf1000.slagtraits.traits.loader.TraitDataReloadListener;
 import me.scarletleaf1000.slagtraits.events.TraitEventHandler;
-import me.scarletleaf1000.slagtraits.register.TraitEffects;
+import me.scarletleaf1000.slagtraits.traits.effect.TraitEffects;
 import net.minecraft.client.Minecraft;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.IEventBus;
