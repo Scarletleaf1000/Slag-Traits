@@ -8,7 +8,7 @@
     {
       "event": "on_tick",
       "condition": "always",
-      "chance": 1.0,
+      "chance": 0.001,
       "effect": {
         "type": "slagtraits:repair_item",
         "parameters": {
