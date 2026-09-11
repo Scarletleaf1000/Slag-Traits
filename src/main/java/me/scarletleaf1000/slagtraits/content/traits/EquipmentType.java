@@ -1,26 +1,24 @@
 package me.scarletleaf1000.slagtraits.content.traits;
 
-public enum EquipmentType {
+import com.mojang.serialization.Codec;
+import net.minecraft.util.StringRepresentable;
+
+public enum EquipmentType implements StringRepresentable {
     TOOL("tool"),
     ARMOR("armor"),
     BOTH("both");
 
     private final String name;
 
+    public static final Codec<EquipmentType> CODEC =
+            StringRepresentable.fromEnum(EquipmentType::values);
+
     EquipmentType(String name) {
         this.name = name;
     }
 
-    public static String getName(EquipmentType type) {
-        return type.name;
-    }
-
-    public static EquipmentType getFromName(String s){
-        for (EquipmentType type : EquipmentType.values()) {
-            String name = EquipmentType.getName(type);
-            if (name.equalsIgnoreCase(s)) return type;
-        }
-
-        return null;
+    @Override
+    public String getSerializedName() {
+        return this.name;
     }
 }

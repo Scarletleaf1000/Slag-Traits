@@ -1,18 +1,15 @@
 package me.scarletleaf1000.slagtraits.content.traits;
 
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.resources.ResourceLocation;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
 public class Trait {
-
-    //for modifier traits
-    private final boolean modifier;
-    private final int baseCostPerLevel;
-    private final float scalingMultiplier;
-
     //general variables
     private final ResourceLocation id;
     private final String displayName;
@@ -22,50 +19,42 @@ public class Trait {
 
     private final List<Trigger> triggers;
 
+    //for modifier traits
+    private final boolean modifier;
+    private final int baseCostPerLevel;
+    private final float scalingMultiplier;
+
     //optional
     private final boolean hidden;
     private final int color;
     private final Set<String> exclusiveWith;
 
-    public Trait(ResourceLocation id, String displayName, String description,
-                 EquipmentType type, int maxLevel, List<Trigger> triggers) {
-        this.id = id;
-        this.displayName = displayName;
-        this.description = description;
-        this.equipmentType = type;
-        this.maxLevel = maxLevel;
-        this.triggers = triggers != null ? triggers : new ArrayList<>();
+    public static final Codec<List<Trigger>> TRIGGER_LIST_CODEC = Trigger.TRIGGER_CODEC.listOf();
+    public static final Codec<Set<String>> STRING_SET_CODEC =
+            Codec.STRING.listOf().xmap(
+                    list -> new HashSet<>(list),
+                    set -> new ArrayList<>(set)
+            );
 
-        this.modifier = false;
-        this.baseCostPerLevel = 0;
-        this.scalingMultiplier = 1f;
-
-        this.hidden = false;
-        this.color = 0xFFFFFF;
-        this.exclusiveWith = Set.of();
-    }
-
-    public Trait(ResourceLocation id, String displayName, String description,
-                 EquipmentType type, int maxLevel, List<Trigger> triggers,
-                 boolean hidden, int color, Set<String> exclusiveWith) {
-        this.id = id;
-        this.displayName = displayName;
-        this.description = description;
-        this.equipmentType = type;
-        this.maxLevel = maxLevel;
-        this.triggers = triggers != null ? triggers : new ArrayList<>();
-
-        this.modifier = false;
-        this.baseCostPerLevel = 0;
-        this.scalingMultiplier = 1f;
-
-        this.hidden = hidden;
-        this.color = color;
-        this.exclusiveWith = exclusiveWith != null ? exclusiveWith : Set.of();
-    }
+    public static final Codec<Trait> TRAIT_CODEC = RecordCodecBuilder.create(instance ->
+            instance.group(
+                    ResourceLocation.CODEC.fieldOf("id").forGetter(Trait::getId),
+                    Codec.STRING.fieldOf("display_name").forGetter(Trait::getDisplayName),
+                    Codec.STRING.fieldOf("description").forGetter(Trait::getDescription),
+                    EquipmentType.CODEC.fieldOf("equipment_type").forGetter(Trait::getEquipmentType),
+                    Codec.INT.optionalFieldOf("max_level", 255).forGetter(Trait::getMaxLevel),
+                    Codec.BOOL.optionalFieldOf("modifier", false).forGetter(Trait::isModifier),
+                    Codec.INT.optionalFieldOf("base_cost", 0).forGetter(Trait::getBaseCostPerLevel),
+                    Codec.FLOAT.optionalFieldOf("scaling_multiplier", 1f).forGetter(Trait::getScalingMultiplier),
+                    TRIGGER_LIST_CODEC.fieldOf("triggers").forGetter(Trait::getTriggers),
+                    Codec.BOOL.optionalFieldOf("hidden", false).forGetter(Trait::isHidden),
+                    Codec.INT.optionalFieldOf("color", 0xFFFFFF).forGetter(Trait::getColor),
+                    STRING_SET_CODEC.optionalFieldOf("exclusive_with", new HashSet<>())
+                            .forGetter(Trait::getExclusiveWith)
+            ).apply(instance, Trait::new));
 
     public Trait(ResourceLocation id, String displayName, String description, EquipmentType type,
-                 int maxLevel, int baseCostPerLevel, float scalingMultiplier,
+                 int maxLevel, boolean modifier, int baseCostPerLevel, float scalingMultiplier,
                  List<Trigger> triggers, boolean hidden, int color, Set<String> exclusiveWith) {
         this.id = id;
         this.displayName = displayName;
@@ -74,7 +63,7 @@ public class Trait {
         this.maxLevel = maxLevel;
         this.triggers = triggers != null ? triggers : new ArrayList<>();
 
-        this.modifier = true;
+        this.modifier = modifier;
         this.baseCostPerLevel = baseCostPerLevel;
         this.scalingMultiplier = scalingMultiplier;
 
@@ -95,7 +84,7 @@ public class Trait {
         return scalingMultiplier;
     }
 
-    public String getId() {
+    public ResourceLocation getId() {
         return id;
     }
 

@@ -1,4 +1,76 @@
 package me.scarletleaf1000.slagtraits.events;
 
+import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.item.ItemStack;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.neoforge.common.NeoForge;
+import net.neoforged.neoforge.event.entity.living.LivingDamageEvent;
+import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
+import net.neoforged.neoforge.event.level.BlockEvent;
+import net.neoforged.neoforge.event.tick.PlayerTickEvent;
+
 public class TraitEventHandler {
+
+    public TraitEventHandler() {
+        NeoForge.EVENT_BUS.register(this);
+    }
+
+    // Called every tick for the player
+    @SubscribeEvent
+    public void onPlayerTick(PlayerTickEvent event) {
+        dispatchForAllEquipment("on_tick", event.getEntity(), event);
+    }
+
+    @SubscribeEvent
+    public void onLivingDamagePre(LivingDamageEvent.Pre event) {
+        if (event.getSource().getEntity() instanceof LivingEntity attacker) {
+            dispatch("on_attack_entity_pre", attacker, attacker.getMainHandItem(), event);
+        }
+        dispatchForArmor("on_hurt_pre", event.getEntity(), event);
+    }
+
+    @SubscribeEvent
+    public void onLivingDamagePost(LivingDamageEvent.Post event) {
+        if (event.getSource().getEntity() instanceof LivingEntity attacker) {
+            dispatch("on_attack_entity", attacker, attacker.getMainHandItem(), event);
+        }
+        dispatchForArmor("on_hurt", event.getEntity(), event);
+    }
+
+    // Breaking a block
+    @SubscribeEvent
+    public void onBlockBreak(BlockEvent.BreakEvent event) {
+        if (event.getPlayer() instanceof LivingEntity player) {
+            dispatch("on_block_break", player, player.getMainHandItem(), event);
+        }
+    }
+
+    // Using an item
+    @SubscribeEvent
+    public void onRightClickItem(PlayerInteractEvent.RightClickItem event) {
+        dispatch("on_item_use", event.getEntity(), event.getItemStack(), event);
+    }
+
+    // Central dispatch
+    private void dispatch(String eventId, LivingEntity holder, ItemStack tool, Object event) {
+        // 1. Get active traits for the tool
+        // 2. For each trait, check triggers
+        //    - match trigger.event == eventId
+        //    - roll trigger.chance
+        //    - test trigger.condition with ConditionRegistry
+        // 3. If all pass, call TraitEffectRegistry.apply(...)
+    }
+
+    private void dispatchForAllEquipment(String eventId, LivingEntity holder, Object event) {
+        dispatch(eventId, holder, holder.getItemBySlot(EquipmentSlot.MAINHAND), event);
+        dispatch(eventId, holder, holder.getItemBySlot(EquipmentSlot.OFFHAND), event);
+        dispatchForArmor(eventId, holder, event);
+    }
+
+    private void dispatchForArmor(String eventId, LivingEntity holder, Object event) {
+        for (ItemStack armorStack : holder.getArmorSlots()) {
+            dispatch(eventId, holder, armorStack, event);
+        }
+    }
 }
