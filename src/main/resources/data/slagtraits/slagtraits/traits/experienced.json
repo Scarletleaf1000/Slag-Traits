@@ -1,0 +1,26 @@
+{
+  "id": "slagtraits:experienced",
+  "display_name": "Experienced",
+  "description": "Gain more experience while worn.",
+  "equipment_type": "armor",
+  "max_tier": 5,
+  "triggers": [
+    {
+      "event": "on_pickup_xp",
+      "condition": "always",
+      "chance": 1.0,
+      "effect": {
+        "type": "slagtraits:xp_multiplier",
+        "parameters": {
+          "base": 1.0,
+          "per_tier": 0.25
+        }
+      }
+    }
+  ],
+  "modifier": false,
+  "base_cost": 0,
+  "scaling_multiplier": 1,
+  "hidden": false,
+  "color": 39168
+}

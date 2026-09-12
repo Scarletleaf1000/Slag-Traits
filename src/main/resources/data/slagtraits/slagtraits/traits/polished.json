@@ -1,0 +1,42 @@
+{
+  "id": "slagtraits:polished",
+  "display_name": "Polished",
+  "description": "Mine and strike harder while the tool is at full durability.",
+  "equipment_type": "tool",
+  "max_tier": 5,
+  "triggers": [
+    {
+      "event": "on_break_speed",
+      "condition": "always",
+      "chance": 1.0,
+      "effect": {
+        "type": "slagtraits:scale_stat",
+        "parameters": {
+          "stat": "break_speed",
+          "mode": "durability_high",
+          "base": 0,
+          "per_tier": 0.15
+        }
+      }
+    },
+    {
+      "event": "on_attack_entity_pre",
+      "condition": "always",
+      "chance": 1.0,
+      "effect": {
+        "type": "slagtraits:scale_stat",
+        "parameters": {
+          "stat": "attack_damage",
+          "mode": "durability_high",
+          "base": 0,
+          "per_tier": 0.15
+        }
+      }
+    }
+  ],
+  "modifier": false,
+  "base_cost": 0,
+  "scaling_multiplier": 1,
+  "hidden": false,
+  "color": 14548736
+}

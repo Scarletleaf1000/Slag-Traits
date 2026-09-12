@@ -1,0 +1,46 @@
+{
+  "id": "slagtraits:endolithic",
+  "display_name": "Endolithic",
+  "description": "Mine and strike harder the deeper you are.",
+  "equipment_type": "tool",
+  "max_tier": 5,
+  "triggers": [
+    {
+      "event": "on_break_speed",
+      "condition": "always",
+      "chance": 1.0,
+      "effect": {
+        "type": "slagtraits:scale_stat",
+        "parameters": {
+          "stat": "break_speed",
+          "mode": "y_level",
+          "base": 0,
+          "per_tier": 0.1,
+          "min_y": -64,
+          "max_y": 128
+        }
+      }
+    },
+    {
+      "event": "on_attack_entity_pre",
+      "condition": "always",
+      "chance": 1.0,
+      "effect": {
+        "type": "slagtraits:scale_stat",
+        "parameters": {
+          "stat": "attack_damage",
+          "mode": "y_level",
+          "base": 0,
+          "per_tier": 0.1,
+          "min_y": -64,
+          "max_y": 128
+        }
+      }
+    }
+  ],
+  "modifier": false,
+  "base_cost": 0,
+  "scaling_multiplier": 1,
+  "hidden": false,
+  "color": 10789120
+}

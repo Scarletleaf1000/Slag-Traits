@@ -13,6 +13,8 @@ import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.entity.living.LivingDamageEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
+import net.neoforged.neoforge.event.entity.player.PlayerXpEvent;
+import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.event.level.BlockEvent;
 import net.neoforged.neoforge.event.tick.PlayerTickEvent;
 
@@ -59,6 +61,20 @@ public class TraitEventHandler {
     @SubscribeEvent
     public void onRightClickItem(PlayerInteractEvent.RightClickItem event) {
         dispatch("on_item_use", event.getEntity(), event.getItemStack(), event);
+    }
+
+    @SubscribeEvent
+    public void onBreakSpeed(PlayerEvent.BreakSpeed event) {
+        Player player = event.getPlayer();
+        if (player == null) return;
+        dispatch("on_break_speed", player, player.getMainHandItem(), event);
+    }
+
+    @SubscribeEvent
+    public void onPickupXp(PlayerXpEvent.PickupXp event) {
+        Player player = event.getPlayer();
+        if (player == null) return;
+        dispatchForArmor("on_pickup_xp", player, event);
     }
 
     // Central dispatch

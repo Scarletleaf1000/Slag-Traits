@@ -1,0 +1,12 @@
+{
+  "required": true,
+  "minVersion": "0.8.6",
+  "package": "me.scarletleaf1000.slagtraits.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "mixins": [
+    "ItemEntityFireImmuneMixin",
+    "ItemStackHurtAndBreakMixin"
+  ],
+  "client": [],
+  "server": []
+}

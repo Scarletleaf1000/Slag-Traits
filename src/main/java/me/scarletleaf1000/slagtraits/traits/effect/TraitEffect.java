@@ -69,4 +69,16 @@ public class TraitEffect {
         if (v.isJsonPrimitive()) return v.getAsString();
         return v.toString();
     }
+
+    public int getScaledInt(String baseKey, String perTierKey, int tier, int fallback) {
+        int base = getInt(baseKey, fallback);
+        int per = getInt(perTierKey, 0);
+        return base + tier * per;
+    }
+
+    public float getScaledFloat(String baseKey, String perTierKey, int tier, float fallback) {
+        float base = getFloat(baseKey, fallback);
+        float per = getFloat(perTierKey, 0f);
+        return base + tier * per;
+    }
 }

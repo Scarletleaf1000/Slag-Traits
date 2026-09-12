@@ -1,0 +1,25 @@
+{
+  "id": "slagtraits:sturdy",
+  "display_name": "Sturdy",
+  "description": "Chance to negate durability damage.",
+  "equipment_type": "both",
+  "max_tier": 5,
+  "triggers": [
+    {
+      "event": "sturdy",
+      "condition": "always",
+      "chance": 0,
+      "effect": {
+        "type": "slagtraits:sturdy",
+        "parameters": {
+          "chance_per_tier": 0.05
+        }
+      }
+    }
+  ],
+  "modifier": false,
+  "base_cost": 0,
+  "scaling_multiplier": 1,
+  "hidden": false,
+  "color": 10526880
+}
