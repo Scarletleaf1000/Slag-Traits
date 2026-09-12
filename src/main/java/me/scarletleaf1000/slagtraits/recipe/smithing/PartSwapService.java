@@ -4,7 +4,6 @@ import dev.lopyluna.slag.content.items.dynamic_part.IDynamicPart;
 import dev.lopyluna.slag.content.items.dynamic_part.IModularItem;
 import dev.lopyluna.slag.content.items.modular.DataDynamicParts;
 import dev.lopyluna.slag.register.AllDataComponents;
-import dev.lopyluna.slag.register.AllDynamicTypes;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
