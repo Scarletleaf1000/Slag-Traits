@@ -17,4 +17,8 @@ public class MaterialTraitManager {
         MATERIAL_TRAIT_MAP.clear();
         MATERIAL_TRAIT_MAP.putAll(map);
     }
+
+    public static Map<ResourceLocation, List<MaterialTraitData.TraitRef>> getAll() {
+        return Map.copyOf(MATERIAL_TRAIT_MAP);
+    }
 }

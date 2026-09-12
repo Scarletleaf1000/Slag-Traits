@@ -2,6 +2,7 @@ package me.scarletleaf1000.slagtraits.mixin;
 
 import dev.lopyluna.slag.content.items.dynamic_part.IModularItem;
 import me.scarletleaf1000.slagtraits.Config;
+import me.scarletleaf1000.slagtraits.recipe.smithing.ModifierService;
 import me.scarletleaf1000.slagtraits.recipe.smithing.PartSwapService;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.server.level.ServerLevel;
@@ -13,7 +14,9 @@ import net.minecraft.world.inventory.ContainerLevelAccess;
 import net.minecraft.world.inventory.ItemCombinerMenuSlotDefinition;
 import net.minecraft.world.inventory.SmithingMenu;
 import net.minecraft.world.item.ItemStack;
+import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
@@ -23,6 +26,10 @@ import java.util.function.Predicate;
 
 @Mixin(SmithingMenu.class)
 public class ItemCombinerMenuMixin {
+    @Shadow
+    @Final
+    public static int ADDITIONAL_SLOT;
+
     @Inject(method = "createInputSlotDefinitions", at = @At("RETURN"), cancellable = true)
     private void slagTraits$allowModularItemsInBaseSlot(
             CallbackInfoReturnable<ItemCombinerMenuSlotDefinition> callback) {
@@ -81,6 +88,18 @@ public class ItemCombinerMenuMixin {
                 level.addFreshEntity(entity);
             }
         });
+    }
+
+    @Inject(method = "onTake", at = @At("HEAD"))
+    private void slagTraits$handleModifierAddition(Player player, ItemStack result, CallbackInfo ci) {
+        SmithingMenu menu = (SmithingMenu) (Object) this;
+        ItemStack template = menu.slots.get(SmithingMenu.TEMPLATE_SLOT).getItem();
+        ItemStack base = menu.slots.get(SmithingMenu.BASE_SLOT).getItem();
+        ItemStack addition = menu.slots.get(SmithingMenu.ADDITIONAL_SLOT).getItem();
+        if (!ModifierService.canApply(template, base, addition)) return;
+
+        var modifierResult = ModifierService.apply(template, base, addition);
+        menu.slots.get(SmithingMenu.ADDITIONAL_SLOT).getItem().shrink(modifierResult.consumed() - 1);
     }
 
     private static boolean isModular(ItemStack stack) {

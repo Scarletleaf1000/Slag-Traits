@@ -1,13 +1,12 @@
 package me.scarletleaf1000.slagtraits.traits.resolver;
 
 import me.scarletleaf1000.slagtraits.SlagTraits;
+import me.scarletleaf1000.slagtraits.recipe.smithing.ModifierService;
 import me.scarletleaf1000.slagtraits.traits.ActiveTrait;
 import me.scarletleaf1000.slagtraits.traits.EquipmentType;
 import me.scarletleaf1000.slagtraits.traits.Trait;
 import me.scarletleaf1000.slagtraits.integration.MaterialAdapter;
-import me.scarletleaf1000.slagtraits.traits.data.MaterialTraitData;
-import me.scarletleaf1000.slagtraits.traits.data.MaterialTraitManager;
-import me.scarletleaf1000.slagtraits.traits.data.TraitDataManager;
+import me.scarletleaf1000.slagtraits.traits.data.*;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.*;
@@ -45,13 +44,26 @@ public class TraitResolver {
             }
         }
 
-        // Future hook: apply modifier trait tier bonuses here
-        // activeTraits = applyModifierBonuses(stack, activeTraits);
+        AppliedModifiers modifiers = stack.getOrDefault(ModDataComponents.MODIFIERS, AppliedModifiers.EMPTY);
+        for (var modifier : modifiers.traitData().entrySet()) {
+            Trait trait = TraitDataManager.get(modifier.getKey());
+            if (trait == null) {
+                SlagTraits.LOGGER.warn("[TraitManager] missing modifier trait data for id={}", trait.getId());
+                continue;
+            }
+
+            int tier = Math.min(ModifierService.tierForValue(trait, modifier.getValue()), trait.getMaxTier());
+
+            ActiveTrait existing = activeTraits.get(trait.getId());
+            if (existing == null || tier > existing.tier()) {
+                activeTraits.put(trait.getId(), new ActiveTrait(trait, tier));
+            }
+        }
 
         return new ArrayList<>(activeTraits.values());
     }
 
-    private static boolean matches(EquipmentType traitType, EquipmentType stackType) {
+    public static boolean matches(EquipmentType traitType, EquipmentType stackType) {
         if (traitType == EquipmentType.NONE || stackType == EquipmentType.NONE) return false;
         return traitType == EquipmentType.BOTH || stackType == EquipmentType.BOTH || traitType == stackType;
     }

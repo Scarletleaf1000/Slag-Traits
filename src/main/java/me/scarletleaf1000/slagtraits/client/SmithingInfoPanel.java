@@ -4,9 +4,12 @@ import dev.lopyluna.slag.content.items.dynamic_part.IModularItem;
 import dev.lopyluna.slag.content.items.modular.DataDynamicParts;
 import me.scarletleaf1000.slagtraits.SlagTraits;
 import me.scarletleaf1000.slagtraits.integration.EquipmentClassifier;
+import me.scarletleaf1000.slagtraits.recipe.smithing.ModifierService;
 import me.scarletleaf1000.slagtraits.traits.ActiveTrait;
 import me.scarletleaf1000.slagtraits.traits.EquipmentType;
 import me.scarletleaf1000.slagtraits.traits.Trait;
+import me.scarletleaf1000.slagtraits.traits.data.AppliedModifiers;
+import me.scarletleaf1000.slagtraits.traits.data.ModDataComponents;
 import me.scarletleaf1000.slagtraits.traits.resolver.TraitResolver;
 import me.scarletleaf1000.slagtraits.util.DisplayUtils;
 import net.minecraft.ChatFormatting;
@@ -130,11 +133,20 @@ public class SmithingInfoPanel extends AbstractWidget {
         List<ActiveTrait> traits = TraitResolver.getActiveTraits(stack).stream()
                 .filter(t -> t.trait() != null && !t.trait().isHidden())
                 .toList();
+        AppliedModifiers modifiers = stack.getOrDefault(ModDataComponents.MODIFIERS, AppliedModifiers.EMPTY);
         if (!traits.isEmpty()) {
             addHeader(lines, "gui.slagtraits.traits");
             for (ActiveTrait active : traits) {
                 Trait trait = active.trait();
-                MutableComponent name = Component.literal(trait.getDisplayName() + " " + DisplayUtils.intToRoman(active.tier()));
+                int displayTier = active.tier();
+                String progress = "";
+                if (trait.isModifier() && modifiers.has(trait.getId()) && active.tier() < trait.getMaxTier()) {
+                    displayTier = active.tier() + 1;
+                    progress = " (" + modifiers.getValue(trait.getId())
+                            + "/" + ModifierService.valueForTier(trait, displayTier) + ")";
+                }
+                MutableComponent name = Component.literal(
+                        trait.getDisplayName() + " " + DisplayUtils.intToRoman(displayTier) + progress);
                 lines.add(new Line(font.split(name, wrapWidth), 0xFF000000 | trait.getColor(), false,
                         traitTooltip(name, trait)));
             }
@@ -164,6 +176,7 @@ public class SmithingInfoPanel extends AbstractWidget {
                 }
             }
         }
+
 
         if (lines.isEmpty()) {
             addLine(lines, Component.translatable("gui.slagtraits.no_info"), LABEL_COLOR, true);

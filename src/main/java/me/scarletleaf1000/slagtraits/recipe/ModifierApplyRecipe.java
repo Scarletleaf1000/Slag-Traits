@@ -1,5 +1,6 @@
 package me.scarletleaf1000.slagtraits.recipe;
 
+import me.scarletleaf1000.slagtraits.recipe.smithing.ModifierService;
 import me.scarletleaf1000.slagtraits.recipe.smithing.SmithingRules;
 import me.scarletleaf1000.slagtraits.recipe.smithing.PartSwapService;
 import net.minecraft.core.HolderLookup;
@@ -10,10 +11,10 @@ import net.minecraft.world.item.crafting.SmithingRecipe;
 import net.minecraft.world.item.crafting.SmithingRecipeInput;
 import net.minecraft.world.level.Level;
 
-public class PartSwapRecipe implements SmithingRecipe {
+public class ModifierApplyRecipe implements SmithingRecipe {
     @Override
     public boolean isTemplateIngredient(ItemStack stack) {
-        return false;
+        return SmithingRules.isModifierTemplate(stack);
     }
 
     @Override
@@ -23,18 +24,17 @@ public class PartSwapRecipe implements SmithingRecipe {
 
     @Override
     public boolean isAdditionIngredient(ItemStack stack) {
-        return SmithingRules.isReplacementPart(stack);
+        return SmithingRules.isModifierMaterial(stack);
     }
 
     @Override
     public boolean matches(SmithingRecipeInput input, Level level) {
-        return input.template().isEmpty()
-                && PartSwapService.canSwap(input.base(), input.addition());
+        return ModifierService.canApply(input.template(), input.base(), input.addition());
     }
 
     @Override
     public ItemStack assemble(SmithingRecipeInput input, HolderLookup.Provider registries) {
-        return PartSwapService.createResult(input.base(), input.addition());
+        return ModifierService.apply(input.template(), input.base(), input.addition()).result();
     }
 
     @Override
@@ -59,7 +59,7 @@ public class PartSwapRecipe implements SmithingRecipe {
 
     @Override
     public RecipeSerializer<?> getSerializer() {
-        return ModRecipes.PART_SWAP.get();
+        return ModRecipes.MODIFIER_APPLY.get();
     }
 
     @Override

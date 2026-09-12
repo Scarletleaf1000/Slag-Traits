@@ -2,6 +2,8 @@ package me.scarletleaf1000.slagtraits;
 
 import com.mojang.logging.LogUtils;
 import dev.lopyluna.slag.register.AllCreativeTabs;
+import me.scarletleaf1000.slagtraits.network.SyncTraitsPayload;
+import me.scarletleaf1000.slagtraits.traits.data.ModDataComponents;
 import me.scarletleaf1000.slagtraits.item.ModItems;
 import me.scarletleaf1000.slagtraits.recipe.ModRecipes;
 import me.scarletleaf1000.slagtraits.traits.loader.MaterialTraitDataReloadListener;
@@ -21,7 +23,10 @@ import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.AddReloadListenerEvent;
 import net.neoforged.neoforge.event.BuildCreativeModeTabContentsEvent;
+import net.neoforged.neoforge.event.OnDatapackSyncEvent;
 import net.neoforged.neoforge.event.server.ServerStartingEvent;
+import net.neoforged.neoforge.network.PacketDistributor;
+import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 import org.slf4j.Logger;
 
 
@@ -39,10 +44,10 @@ public class SlagTraits {
         // Register the commonSetup method for modloading
         modEventBus.addListener(this::commonSetup);
 
-        ModItems.register(modEventBus);
-
         TraitEffects.register();
         new TraitEventHandler();
+        ModItems.register(modEventBus);
+        ModDataComponents.register(modEventBus);
         ModRecipes.register(modEventBus);
 
         // Register ourselves for server and other game events we are interested in.
@@ -52,6 +57,10 @@ public class SlagTraits {
 
         // Register the item to a creative tab
         modEventBus.addListener(this::addCreative);
+
+        modEventBus.addListener((RegisterPayloadHandlersEvent event) ->
+                event.registrar("1").playToClient(
+                        SyncTraitsPayload.TYPE, SyncTraitsPayload.STREAM_CODEC, SyncTraitsPayload::handle));
 
         // Register our mod's ModConfigSpec so that FML can create and load the config file for us
         modContainer.registerConfig(ModConfig.Type.COMMON, Config.SPEC);
@@ -78,6 +87,16 @@ public class SlagTraits {
     public void onAddReloadListeners(AddReloadListenerEvent event) {
         event.addListener(new TraitDataReloadListener());
         event.addListener(new MaterialTraitDataReloadListener());
+    }
+
+    @SubscribeEvent
+    public void onDatapackSync(OnDatapackSyncEvent event) {
+        SyncTraitsPayload payload = SyncTraitsPayload.create();
+        if (event.getPlayer() != null) {
+            PacketDistributor.sendToPlayer(event.getPlayer(), payload);   // player join
+        } else {
+            PacketDistributor.sendToAllPlayers(payload);                  // /reload
+        }
     }
 
 

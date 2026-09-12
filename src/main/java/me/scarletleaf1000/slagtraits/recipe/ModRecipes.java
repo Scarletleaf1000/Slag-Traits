@@ -15,6 +15,9 @@ public class ModRecipes {
     public static final Supplier<PartSwapRecipeSerializer> PART_SWAP =
             RECIPE_SERIALIZERS.register("part_swap", PartSwapRecipeSerializer::new);
 
+    public static final Supplier<ModifierApplyRecipeSerializer> MODIFIER_APPLY =
+            RECIPE_SERIALIZERS.register("modifier_apply", ModifierApplyRecipeSerializer::new);
+
     public static void register(IEventBus modEventBus) {
         RECIPE_SERIALIZERS.register(modEventBus);
     }
