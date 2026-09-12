@@ -1,24 +1,29 @@
 package me.scarletleaf1000.slagtraits.events;
 
-import me.scarletleaf1000.slagtraits.SlagTraits;
-import me.scarletleaf1000.slagtraits.content.traits.Trait;
-import me.scarletleaf1000.slagtraits.content.traits.TraitEffect;
-import me.scarletleaf1000.slagtraits.content.traits.Trigger;
-import net.minecraft.core.registries.BuiltInRegistries;
-import me.scarletleaf1000.slagtraits.content.traits.data.TraitManager;
-import me.scarletleaf1000.slagtraits.register.TraitEffectRegistry;
+import me.scarletleaf1000.slagtraits.traits.ActiveTrait;
+import me.scarletleaf1000.slagtraits.traits.Trait;
+import me.scarletleaf1000.slagtraits.traits.Trigger;
+import me.scarletleaf1000.slagtraits.traits.resolver.TraitResolver;
+import me.scarletleaf1000.slagtraits.traits.effect.TraitEffectRegistry;
+import me.scarletleaf1000.slagtraits.traits.effect.implementation.TraitEffects;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.neoforge.common.NeoForge;
+import net.neoforged.neoforge.event.ItemAttributeModifierEvent;
 import net.neoforged.neoforge.event.entity.living.LivingDamageEvent;
+import net.neoforged.neoforge.event.entity.living.LivingDeathEvent;
+import net.neoforged.neoforge.event.entity.living.LivingIncomingDamageEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
+import net.neoforged.neoforge.event.entity.player.PlayerXpEvent;
+import net.neoforged.neoforge.event.entity.player.PlayerEvent;
+import net.neoforged.neoforge.event.level.BlockDropsEvent;
 import net.neoforged.neoforge.event.level.BlockEvent;
 import net.neoforged.neoforge.event.tick.PlayerTickEvent;
 
 import java.util.List;
-import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
 
 public class TraitEventHandler {
@@ -30,7 +35,7 @@ public class TraitEventHandler {
     // Called every tick for the player
     @SubscribeEvent
     public void onPlayerTick(PlayerTickEvent.Post event) {
-        dispatchForAllEquipment("on_tick", event.getEntity(), event);
+        dispatchForAllItems("on_tick", event.getEntity(), event);
     }
 
     @SubscribeEvent
@@ -63,21 +68,70 @@ public class TraitEventHandler {
         dispatch("on_item_use", event.getEntity(), event.getItemStack(), event);
     }
 
+    @SubscribeEvent
+    public void onBreakSpeed(PlayerEvent.BreakSpeed event) {
+        Player player = event.getEntity();
+        if (player == null) return;
+        dispatch("on_break_speed", player, player.getMainHandItem(), event);
+    }
+
+    @SubscribeEvent
+    public void onPickupXp(PlayerXpEvent.PickupXp event) {
+        Player player = event.getEntity();
+        if (player == null) return;
+        dispatchForArmor("on_pickup_xp", player, event);
+    }
+
+    @SubscribeEvent
+    public void onIncomingDamage(LivingIncomingDamageEvent event) {
+        dispatchForArmor("on_incoming_damage", event.getEntity(), event);
+    }
+
+    @SubscribeEvent
+    public void onBlockDrops(BlockDropsEvent event) {
+        if (event.getBreaker() instanceof LivingEntity breaker) {
+            dispatch("on_block_drops", breaker, event.getTool(), event);
+        }
+    }
+
+    @SubscribeEvent
+    public void onLivingDeath(LivingDeathEvent event) {
+        if (event.getSource() != null && event.getSource().getEntity() instanceof LivingEntity attacker) {
+            dispatch("on_kill", attacker, attacker.getMainHandItem(), event);
+        }
+    }
+
+    @SubscribeEvent
+    public void onItemAttributeModifier(ItemAttributeModifierEvent event) {
+        ItemStack stack = event.getItemStack();
+        if (stack.isEmpty()) return;
+
+        for (ActiveTrait activeTrait : TraitResolver.getActiveTraits(stack)) {
+            for (Trigger trigger : activeTrait.trait().getTriggers()) {
+                if (trigger.getEffect() != null
+                        && TraitEffects.ATTRIBUTE_MODIFIER.equals(trigger.getEffect().getType())) {
+                    TraitEffectRegistry.apply(trigger.getEffect(), null, stack, event, activeTrait.tier());
+                }
+            }
+        }
+    }
+
     // Central dispatch
     private void dispatch(String eventId, LivingEntity holder, ItemStack tool, Object event) {
         if (tool.isEmpty()) return;
         if (holder.level().isClientSide()) return;
 
-        List<Trait> traits = TraitManager.getActiveTraits(tool);
-        SlagTraits.LOGGER.debug("[TraitEvent] event={} item={} activeTraits={}", eventId, BuiltInRegistries.ITEM.getKey(tool.getItem()), traits.size());
-        if (traits.isEmpty()) return;
+        List<ActiveTrait> activeTraits = TraitResolver.getActiveTraits(tool);
+        if (activeTraits.isEmpty()) return;
 
-        for (Trait trait : traits) {
+        for (ActiveTrait activeTrait : activeTraits) {
+            Trait trait = activeTrait.trait();
+            int tier = activeTrait.tier();
             for (Trigger trigger : trait.getTriggers()) {
                 if (!trigger.getEvent().equalsIgnoreCase(eventId)) continue;
                 if (ThreadLocalRandom.current().nextFloat() < trigger.getChance()){
-                    if (TraitManager.test(trigger.getCondition(), holder, tool, event)) {
-                        TraitEffectRegistry.apply(trigger.getEffect(), holder, tool, event);
+                    if (TraitResolver.test(trigger.getCondition(), holder, tool, event)) {
+                        TraitEffectRegistry.apply(trigger.getEffect(), holder, tool, event, tier);
                     }
                 }
             }
@@ -94,5 +148,21 @@ public class TraitEventHandler {
         for (ItemStack armorStack : holder.getArmorSlots()) {
             dispatch(eventId, holder, armorStack, event);
         }
+    }
+
+    private void dispatchForAllItems(String eventId, LivingEntity holder, Object event) {
+        if (holder instanceof Player p) {
+            for (ItemStack stack : p.getInventory().items) {
+                dispatch(eventId, holder, stack, event);
+            }
+            for (ItemStack stack : p.getInventory().armor) {
+                dispatch(eventId, holder, stack, event);
+            }
+            for (ItemStack stack : p.getInventory().offhand) {
+                dispatch(eventId, holder, stack, event);
+            }
+            return;
+        }
+        dispatchForAllEquipment(eventId, holder, event);
     }
 }

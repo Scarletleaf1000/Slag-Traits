@@ -1,6 +1,6 @@
-package me.scarletleaf1000.slagtraits.content.traits.data;
+package me.scarletleaf1000.slagtraits.traits.data;
 
-import me.scarletleaf1000.slagtraits.content.traits.Trait;
+import me.scarletleaf1000.slagtraits.traits.Trait;
 import net.minecraft.resources.ResourceLocation;
 
 import java.util.HashMap;

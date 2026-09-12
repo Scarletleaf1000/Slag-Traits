@@ -1,0 +1,22 @@
+{
+  "id": "slagtraits:fire_resistant",
+  "display_name": "Fire Resistant",
+  "description": "The item is immune to fire and lava.",
+  "equipment_type": "both",
+  "max_tier": 1,
+  "triggers": [
+    {
+      "event": "fire_immune",
+      "condition": "always",
+      "chance": 0,
+      "effect": {
+        "type": "slagtraits:fire_immune"
+      }
+    }
+  ],
+  "modifier": false,
+  "base_cost": 0,
+  "scaling_multiplier": 1,
+  "hidden": false,
+  "color": 16745216
+}

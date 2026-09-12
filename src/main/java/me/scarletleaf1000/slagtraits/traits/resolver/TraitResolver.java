@@ -1,66 +1,59 @@
-package me.scarletleaf1000.slagtraits.content.traits.data;
+package me.scarletleaf1000.slagtraits.traits.resolver;
 
 import me.scarletleaf1000.slagtraits.SlagTraits;
-import me.scarletleaf1000.slagtraits.content.traits.EquipmentType;
-import me.scarletleaf1000.slagtraits.content.traits.Trait;
-import net.minecraft.core.registries.BuiltInRegistries;
+import me.scarletleaf1000.slagtraits.traits.ActiveTrait;
+import me.scarletleaf1000.slagtraits.traits.EquipmentType;
+import me.scarletleaf1000.slagtraits.traits.Trait;
+import me.scarletleaf1000.slagtraits.integration.MaterialAdapter;
+import me.scarletleaf1000.slagtraits.traits.data.MaterialTraitData;
+import me.scarletleaf1000.slagtraits.traits.data.MaterialTraitManager;
+import me.scarletleaf1000.slagtraits.traits.data.TraitDataManager;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.*;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
-public class TraitManager {
+import static me.scarletleaf1000.slagtraits.integration.EquipmentClassifier.getEquipmentType;
 
-    public static List<Trait> getActiveTraits(ItemStack stack) {
+public class TraitResolver {
+
+    public static List<ActiveTrait> getActiveTraits(ItemStack stack) {
         if (stack.isEmpty()) return List.of();
 
-        List<Trait> result = new ArrayList<>();
-        Set<ResourceLocation> seen = new HashSet<>();
+        Map<ResourceLocation, ActiveTrait> activeTraits = new HashMap<>();
         EquipmentType type = getEquipmentType(stack);
-        ResourceLocation itemId = BuiltInRegistries.ITEM.getKey(stack.getItem());
         List<ResourceLocation> materials = MaterialAdapter.getMaterials(stack);
-
-        SlagTraits.LOGGER.debug("[TraitManager] resolving item={} equipmentType={} materials={}", itemId, type, materials);
 
         for (ResourceLocation material : materials) {
             List<MaterialTraitData.TraitRef> refs = MaterialTraitManager.getTraits(material);
-            SlagTraits.LOGGER.debug("[TraitManager] material={} traitRefs={}", material, refs.size());
             for (MaterialTraitData.TraitRef ref : refs) {
                 Trait trait = TraitDataManager.get(ref.id());
                 if (trait == null) {
                     SlagTraits.LOGGER.warn("[TraitManager] missing trait data for id={} on material={}", ref.id(), material);
                     continue;
                 }
-                if (seen.contains(trait.getId())) continue;
 
-                // Filter by equipment type
-                if (!matches(trait.getEquipmentType(), type)) {
-                    SlagTraits.LOGGER.debug("[TraitManager] skipping trait={} (traitType={} vs stackType={})", trait.getId(), trait.getEquipmentType(), type);
-                    continue;
+                if (!matches(trait.getEquipmentType(), type)) continue;
+
+                int tier = Math.min(ref.tier(), trait.getMaxTier());
+
+                ActiveTrait existing = activeTraits.get(trait.getId());
+                if (existing == null || tier > existing.tier()) {
+                    activeTraits.put(trait.getId(), new ActiveTrait(trait, tier));
                 }
-
-                result.add(trait);
-                seen.add(trait.getId());
-                SlagTraits.LOGGER.debug("[TraitManager] added trait={}", trait.getId());
             }
         }
-        SlagTraits.LOGGER.debug("[TraitManager] resolved item={} activeTraits={}", itemId, result.size());
-        return result;
+
+        // Future hook: apply modifier trait tier bonuses here
+        // activeTraits = applyModifierBonuses(stack, activeTraits);
+
+        return new ArrayList<>(activeTraits.values());
     }
 
     private static boolean matches(EquipmentType traitType, EquipmentType stackType) {
+        if (traitType == EquipmentType.NONE || stackType == EquipmentType.NONE) return false;
         return traitType == EquipmentType.BOTH || stackType == EquipmentType.BOTH || traitType == stackType;
-    }
-
-    private static EquipmentType getEquipmentType(ItemStack stack) {
-        Item item = stack.getItem();
-        if (item instanceof ArmorItem) return EquipmentType.ARMOR;
-        if (item instanceof DiggerItem || item instanceof SwordItem || item instanceof ShearsItem || item instanceof TridentItem) return EquipmentType.TOOL;
-        return EquipmentType.BOTH; // fallback
     }
 
     public static boolean test(String condition, LivingEntity holder, ItemStack tool, Object event) {
@@ -72,6 +65,12 @@ public class TraitManager {
             case "is_in_water" -> holder.isInWater();
             case "is_on_fire" -> holder.isOnFire();
             case "held_in_main_hand" -> holder.getMainHandItem() == tool;
+            case "is_equipped" -> {
+                for (ItemStack slot : holder.getAllSlots()) {
+                    if (slot == tool) yield true;
+                }
+                yield false;
+            }
             case "is_day" -> holder.level().isDay();
             case "is_night" -> !holder.level().isDay();
             case "is_full_health" -> holder.getHealth() >= holder.getMaxHealth();

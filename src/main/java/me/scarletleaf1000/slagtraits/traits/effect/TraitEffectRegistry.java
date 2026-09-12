@@ -1,7 +1,5 @@
-package me.scarletleaf1000.slagtraits.register;
+package me.scarletleaf1000.slagtraits.traits.effect;
 
-import me.scarletleaf1000.slagtraits.content.traits.IEffectHandler;
-import me.scarletleaf1000.slagtraits.content.traits.TraitEffect;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
@@ -16,10 +14,10 @@ public class TraitEffectRegistry {
         HANDLERS.put(type, handler);
     }
 
-    public static void apply(TraitEffect effect, LivingEntity holder, ItemStack tool, Object event) {
+    public static void apply(TraitEffect effect, LivingEntity holder, ItemStack tool, Object event, int tier) {
         IEffectHandler handler = HANDLERS.get(effect.getType());
         if (handler != null) {
-            handler.apply(holder, tool, effect, event);
+            handler.apply(holder, tool, effect, event, tier);
         }
     }
 }

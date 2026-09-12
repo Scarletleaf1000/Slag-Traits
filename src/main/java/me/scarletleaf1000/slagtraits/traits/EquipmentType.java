@@ -1,4 +1,4 @@
-package me.scarletleaf1000.slagtraits.content.traits;
+package me.scarletleaf1000.slagtraits.traits;
 
 import com.mojang.serialization.Codec;
 import net.minecraft.util.StringRepresentable;
@@ -6,7 +6,8 @@ import net.minecraft.util.StringRepresentable;
 public enum EquipmentType implements StringRepresentable {
     TOOL("tool"),
     ARMOR("armor"),
-    BOTH("both");
+    BOTH("both"),
+    NONE("none");
 
     private final String name;
 

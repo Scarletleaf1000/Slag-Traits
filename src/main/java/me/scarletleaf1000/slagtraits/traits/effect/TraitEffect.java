@@ -1,4 +1,4 @@
-package me.scarletleaf1000.slagtraits.content.traits;
+package me.scarletleaf1000.slagtraits.traits.effect;
 
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
@@ -8,8 +8,10 @@ import net.minecraft.util.ExtraCodecs;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonPrimitive;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class TraitEffect {
@@ -68,5 +70,43 @@ public class TraitEffect {
         if (v == null || v.isJsonNull()) return null;
         if (v.isJsonPrimitive()) return v.getAsString();
         return v.toString();
+    }
+
+    public boolean getBoolean(String key, boolean fallback) {
+        JsonElement v = parameters.get(key);
+        if (v == null || v.isJsonNull()) return fallback;
+        if (v.isJsonPrimitive()) {
+            JsonPrimitive p = v.getAsJsonPrimitive();
+            if (p.isBoolean()) return p.getAsBoolean();
+            if (p.isNumber()) return p.getAsNumber().intValue() != 0;
+            if (p.isString()) return Boolean.parseBoolean(p.getAsString());
+        }
+        return fallback;
+    }
+
+    public List<String> getStringList(String key) {
+        JsonElement v = parameters.get(key);
+        if (v == null || v.isJsonNull()) return List.of();
+        if (v.isJsonArray()) {
+            List<String> out = new ArrayList<>();
+            for (JsonElement e : v.getAsJsonArray()) {
+                if (e.isJsonPrimitive()) out.add(e.getAsString());
+            }
+            return out;
+        }
+        if (v.isJsonPrimitive()) return List.of(v.getAsString());
+        return List.of();
+    }
+
+    public int getScaledInt(String baseKey, String perTierKey, int tier, int fallback) {
+        int base = getInt(baseKey, fallback);
+        int per = getInt(perTierKey, 0);
+        return base + tier * per;
+    }
+
+    public float getScaledFloat(String baseKey, String perTierKey, int tier, float fallback) {
+        float base = getFloat(baseKey, fallback);
+        float per = getFloat(perTierKey, 0f);
+        return base + tier * per;
     }
 }
