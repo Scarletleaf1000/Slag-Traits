@@ -48,7 +48,7 @@ public class TraitResolver {
         for (var modifier : modifiers.traitData().entrySet()) {
             Trait trait = TraitDataManager.get(modifier.getKey());
             if (trait == null) {
-                SlagTraits.LOGGER.warn("[TraitManager] missing modifier trait data for id={}", trait.getId());
+                SlagTraits.LOGGER.warn("[TraitManager] missing modifier trait data for id={}", modifier.getKey());
                 continue;
             }
 
