@@ -1,4 +1,20 @@
 {
   "tooltip.slagtraits.traits_header": "Traits:",
-  "tooltip.slagtraits.hold_alt": "Hold [%s] for Traits"
+  "tooltip.slagtraits.hold_alt": "Hold [%s] for Traits",
+
+  "gui.slagtraits.panel": "Item Info",
+  "gui.slagtraits.traits": "Traits",
+  "gui.slagtraits.stats": "Stats",
+  "gui.slagtraits.parts": "Parts",
+  "gui.slagtraits.empty": "Insert an item to inspect",
+  "gui.slagtraits.no_info": "No traits or stats",
+  "gui.slagtraits.stat.attack_damage": "Attack Damage",
+  "gui.slagtraits.stat.mining_speed": "Mining Speed",
+  "gui.slagtraits.stat.attack_speed": "Attack Speed",
+  "gui.slagtraits.stat.durability": "Durability",
+  "gui.slagtraits.stat.tier": "Harvest Tier",
+  "gui.slagtraits.stat.defense": "Defense",
+  "gui.slagtraits.stat.toughness": "Toughness",
+  "gui.slagtraits.stat.kb_resist": "Knockback Resist",
+  "gui.slagtraits.stat.enchantability": "Enchantability"
 }
