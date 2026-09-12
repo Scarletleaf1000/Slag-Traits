@@ -65,6 +65,12 @@ public class TraitResolver {
             case "is_in_water" -> holder.isInWater();
             case "is_on_fire" -> holder.isOnFire();
             case "held_in_main_hand" -> holder.getMainHandItem() == tool;
+            case "is_equipped" -> {
+                for (ItemStack slot : holder.getAllSlots()) {
+                    if (slot == tool) yield true;
+                }
+                yield false;
+            }
             case "is_day" -> holder.level().isDay();
             case "is_night" -> !holder.level().isDay();
             case "is_full_health" -> holder.getHealth() >= holder.getMaxHealth();

@@ -5,16 +5,21 @@ import me.scarletleaf1000.slagtraits.traits.Trait;
 import me.scarletleaf1000.slagtraits.traits.Trigger;
 import me.scarletleaf1000.slagtraits.traits.resolver.TraitResolver;
 import me.scarletleaf1000.slagtraits.traits.effect.TraitEffectRegistry;
+import me.scarletleaf1000.slagtraits.traits.effect.implementation.TraitEffects;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.neoforge.common.NeoForge;
+import net.neoforged.neoforge.event.ItemAttributeModifierEvent;
 import net.neoforged.neoforge.event.entity.living.LivingDamageEvent;
+import net.neoforged.neoforge.event.entity.living.LivingDeathEvent;
+import net.neoforged.neoforge.event.entity.living.LivingIncomingDamageEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerXpEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
+import net.neoforged.neoforge.event.level.BlockDropsEvent;
 import net.neoforged.neoforge.event.level.BlockEvent;
 import net.neoforged.neoforge.event.tick.PlayerTickEvent;
 
@@ -77,6 +82,40 @@ public class TraitEventHandler {
         dispatchForArmor("on_pickup_xp", player, event);
     }
 
+    @SubscribeEvent
+    public void onIncomingDamage(LivingIncomingDamageEvent event) {
+        dispatchForArmor("on_incoming_damage", event.getEntity(), event);
+    }
+
+    @SubscribeEvent
+    public void onBlockDrops(BlockDropsEvent event) {
+        if (event.getBreaker() instanceof LivingEntity breaker) {
+            dispatch("on_block_drops", breaker, event.getTool(), event);
+        }
+    }
+
+    @SubscribeEvent
+    public void onLivingDeath(LivingDeathEvent event) {
+        if (event.getSource() != null && event.getSource().getEntity() instanceof LivingEntity attacker) {
+            dispatch("on_kill", attacker, attacker.getMainHandItem(), event);
+        }
+    }
+
+    @SubscribeEvent
+    public void onItemAttributeModifier(ItemAttributeModifierEvent event) {
+        ItemStack stack = event.getItemStack();
+        if (stack.isEmpty()) return;
+
+        for (ActiveTrait activeTrait : TraitResolver.getActiveTraits(stack)) {
+            for (Trigger trigger : activeTrait.trait().getTriggers()) {
+                if (trigger.getEffect() != null
+                        && TraitEffects.ATTRIBUTE_MODIFIER.equals(trigger.getEffect().getType())) {
+                    TraitEffectRegistry.apply(trigger.getEffect(), null, stack, event, activeTrait.tier());
+                }
+            }
+        }
+    }
+
     // Central dispatch
     private void dispatch(String eventId, LivingEntity holder, ItemStack tool, Object event) {
         if (tool.isEmpty()) return;
@@ -114,6 +153,12 @@ public class TraitEventHandler {
     private void dispatchForAllItems(String eventId, LivingEntity holder, Object event) {
         if (holder instanceof Player p) {
             for (ItemStack stack : p.getInventory().items) {
+                dispatch(eventId, holder, stack, event);
+            }
+            for (ItemStack stack : p.getInventory().armor) {
+                dispatch(eventId, holder, stack, event);
+            }
+            for (ItemStack stack : p.getInventory().offhand) {
                 dispatch(eventId, holder, stack, event);
             }
             return;
