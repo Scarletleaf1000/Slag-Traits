@@ -3,6 +3,8 @@ package me.scarletleaf1000.slagtraits.recipe.smithing;
 import dev.lopyluna.slag.content.items.dynamic_part.IDynamicPart;
 import dev.lopyluna.slag.content.items.dynamic_part.IModularItem;
 import dev.lopyluna.slag.content.items.modular.DataDynamicParts;
+import dev.lopyluna.slag.register.AllDataComponents;
+import dev.lopyluna.slag.register.AllDynamicTypes;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -73,7 +75,12 @@ public final class PartSwapService {
 
         List<ItemStack> parts = modular.getParts(tool).itemsCopy();
         ItemStack removed = parts.get(index.getAsInt()).copy();
-        parts.set(index.getAsInt(), replacement.copyWithCount(1));
+        removed.remove(AllDataComponents.BUILT);
+
+        ItemStack newPart = replacement.copyWithCount(1);
+        var typeID = tool.get(AllDataComponents.MODULAR_TYPE);
+        if (typeID != null) newPart.set(AllDataComponents.BUILT, typeID);
+        parts.set(index.getAsInt(), newPart);
 
         ItemStack newTool = tool.copyWithCount(1);
         modular.setParts(newTool, parts);
@@ -102,6 +109,8 @@ public final class PartSwapService {
         if (parts == null || parts.isEmpty()) return ItemStack.EMPTY;
 
         List<ItemStack> items = parts.itemsCopy();
-        return items.get(index.getAsInt());
+        var removed = items.get(index.getAsInt());
+        removed.remove(AllDataComponents.BUILT);
+        return removed;
     }
 }
