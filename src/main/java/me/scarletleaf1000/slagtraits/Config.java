@@ -15,6 +15,10 @@ public class Config {
             .comment("Chance that a removed modular tool part breaks instead of dropping when swapped at a smithing table.")
             .defineInRange("partSwapBreakChance", 0.2, 0.0, 1.0);
 
+    public static final ModConfigSpec.BooleanValue MODULAR_TOOLS_ENCHANTABLE = BUILDER
+            .comment("Whether modular tools can receive enchantments.")
+            .define("modularToolsEnchantable", false);
+
     static final ModConfigSpec SPEC = BUILDER.build();
 
     @SubscribeEvent
