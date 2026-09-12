@@ -65,14 +65,14 @@ public class TraitEventHandler {
 
     @SubscribeEvent
     public void onBreakSpeed(PlayerEvent.BreakSpeed event) {
-        Player player = event.getPlayer();
+        Player player = event.getEntity();
         if (player == null) return;
         dispatch("on_break_speed", player, player.getMainHandItem(), event);
     }
 
     @SubscribeEvent
     public void onPickupXp(PlayerXpEvent.PickupXp event) {
-        Player player = event.getPlayer();
+        Player player = event.getEntity();
         if (player == null) return;
         dispatchForArmor("on_pickup_xp", player, event);
     }
