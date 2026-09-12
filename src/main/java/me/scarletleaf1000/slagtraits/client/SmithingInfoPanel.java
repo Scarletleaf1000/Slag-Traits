@@ -3,7 +3,9 @@ package me.scarletleaf1000.slagtraits.client;
 import dev.lopyluna.slag.content.items.dynamic_part.IModularItem;
 import dev.lopyluna.slag.content.items.modular.DataDynamicParts;
 import me.scarletleaf1000.slagtraits.SlagTraits;
+import me.scarletleaf1000.slagtraits.integration.EquipmentClassifier;
 import me.scarletleaf1000.slagtraits.traits.ActiveTrait;
+import me.scarletleaf1000.slagtraits.traits.EquipmentType;
 import me.scarletleaf1000.slagtraits.traits.Trait;
 import me.scarletleaf1000.slagtraits.traits.resolver.TraitResolver;
 import me.scarletleaf1000.slagtraits.util.DisplayUtils;
@@ -18,6 +20,7 @@ import net.minecraft.client.gui.screens.inventory.SmithingScreen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.FormattedCharSequence;
 import net.minecraft.util.Mth;
 import net.minecraft.world.inventory.SmithingMenu;
 import net.minecraft.world.item.ItemStack;
@@ -38,6 +41,7 @@ public class SmithingInfoPanel extends AbstractWidget {
     private static final int SCROLLBAR_WIDTH = 4;
     private static final int SCROLLBAR_PAD = 3;
     private static final int BASE_SLOT = 1;
+    private static final int TOOLTIP_WRAP_WIDTH = 170;
 
     private static final int TEXT_COLOR = 0xFFDDDDDD;
     private static final int LABEL_COLOR = 0xFFAAAAAA;
@@ -49,6 +53,7 @@ public class SmithingInfoPanel extends AbstractWidget {
     private final SmithingMenu menu;
     private final Font font;
 
+    private int wrapWidth;
     private int scrollOffset;
     private int contentHeight;
     private boolean draggingScrollbar;
@@ -61,41 +66,64 @@ public class SmithingInfoPanel extends AbstractWidget {
         this.font = Minecraft.getInstance().font;
     }
 
-    private record Line(Component text, int color, boolean centered) {}
+    private record Line(List<FormattedCharSequence> text, int color, boolean centered,
+                        List<FormattedCharSequence> tooltip) {
+        int height() {
+            return Math.max(1, text.size()) * LINE_HEIGHT;
+        }
+    }
 
     @Override
     protected void renderWidget(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
         graphics.blit(BACKGROUND, getX(), getY(), 0, 0, PANEL_WIDTH, PANEL_HEIGHT, PANEL_WIDTH, PANEL_HEIGHT);
 
         ItemStack stack = menu.slots.size() > BASE_SLOT ? menu.getSlot(BASE_SLOT).getItem() : ItemStack.EMPTY;
-        List<Line> lines = buildLines(stack);
-        contentHeight = lines.size() * LINE_HEIGHT;
+        int contentTop = getY() + MARGIN;
+        int contentBottom = contentTop + visibleHeight();
+        int contentRight = getX() + PANEL_WIDTH - MARGIN;
+        int contentX = getX() + MARGIN;
+
+        List<Line> lines = buildLines(stack, contentRight - contentX);
+        contentHeight = lines.stream().mapToInt(Line::height).sum();
+        boolean scrollable = contentHeight > visibleHeight();
+        if (scrollable) {
+            contentX += SCROLLBAR_WIDTH + 2;
+            lines = buildLines(stack, contentRight - contentX);
+            contentHeight = lines.stream().mapToInt(Line::height).sum();
+        }
         scrollOffset = Mth.clamp(scrollOffset, 0, maxScroll());
 
-        boolean scrollable = maxScroll() > 0;
-        int contentX = getX() + MARGIN + (scrollable ? SCROLLBAR_WIDTH + 2 : 0);
-        int contentRight = getX() + PANEL_WIDTH - MARGIN;
-        int contentTop = getY() + MARGIN;
-
-        graphics.enableScissor(contentX, contentTop, contentRight, contentTop + visibleHeight());
+        graphics.enableScissor(contentX, contentTop, contentRight, contentBottom);
         int y = contentTop - scrollOffset;
+        List<FormattedCharSequence> hoveredTooltip = List.of();
         for (Line line : lines) {
-            if (line.centered()) {
-                graphics.drawCenteredString(font, line.text(), (contentX + contentRight) / 2, y, line.color());
-            } else {
-                graphics.drawString(font, line.text(), contentX, y, line.color());
+            int lineTop = y;
+            for (FormattedCharSequence text : line.text()) {
+                int drawX = line.centered()
+                        ? contentX + (contentRight - contentX - font.width(text)) / 2
+                        : contentX;
+                graphics.drawString(font, text, drawX, y, line.color());
+                y += LINE_HEIGHT;
             }
-            y += LINE_HEIGHT;
+            if (line.text().isEmpty()) y += LINE_HEIGHT;
+            if (!line.tooltip().isEmpty()
+                    && mouseX >= contentX && mouseX < contentRight
+                    && mouseY >= Math.max(lineTop, contentTop)
+                    && mouseY < Math.min(y, contentBottom)) {
+                hoveredTooltip = line.tooltip();
+            }
         }
         graphics.disableScissor();
 
         if (scrollable) renderScrollbar(graphics, mouseX, mouseY);
+        if (!hoveredTooltip.isEmpty()) graphics.renderTooltip(font, hoveredTooltip, mouseX, mouseY);
     }
 
-    private List<Line> buildLines(ItemStack stack) {
+    private List<Line> buildLines(ItemStack stack, int wrapWidth) {
+        this.wrapWidth = wrapWidth;
         List<Line> lines = new ArrayList<>();
         if (stack.isEmpty()) {
-            lines.add(new Line(Component.translatable("gui.slagtraits.empty"), LABEL_COLOR, true));
+            addLine(lines, Component.translatable("gui.slagtraits.empty"), LABEL_COLOR, true);
             return lines;
         }
 
@@ -106,8 +134,9 @@ public class SmithingInfoPanel extends AbstractWidget {
             addHeader(lines, "gui.slagtraits.traits");
             for (ActiveTrait active : traits) {
                 Trait trait = active.trait();
-                Component name = Component.literal(trait.getDisplayName() + " " + DisplayUtils.intToRoman(active.tier()));
-                lines.add(new Line(name, 0xFF000000 | trait.getColor(), false));
+                MutableComponent name = Component.literal(trait.getDisplayName() + " " + DisplayUtils.intToRoman(active.tier()));
+                lines.add(new Line(font.split(name, wrapWidth), 0xFF000000 | trait.getColor(), false,
+                        traitTooltip(name, trait)));
             }
         }
 
@@ -122,7 +151,7 @@ public class SmithingInfoPanel extends AbstractWidget {
             addStat(stats, "toughness", modular.getTough(stack));
             addStat(stats, "kb_resist", modular.getKbRes(stack));
             addStat(stats, "enchantability", modular.getEnch(stack));
-            if (!stats.isEmpty()) {
+            if (!stats.isEmpty() && EquipmentClassifier.getEquipmentType(stack) == EquipmentType.TOOL) {
                 addHeader(lines, "gui.slagtraits.stats");
                 lines.addAll(stats);
             }
@@ -131,26 +160,40 @@ public class SmithingInfoPanel extends AbstractWidget {
             if (parts != null && !parts.isEmpty()) {
                 addHeader(lines, "gui.slagtraits.parts");
                 for (ItemStack part : parts.itemsCopy()) {
-                    lines.add(new Line(part.getHoverName().copy().withStyle(ChatFormatting.GRAY), TEXT_COLOR, false));
+                    addLine(lines, part.getHoverName().copy().withStyle(ChatFormatting.GRAY), TEXT_COLOR, false);
                 }
             }
         }
 
         if (lines.isEmpty()) {
-            lines.add(new Line(Component.translatable("gui.slagtraits.no_info"), LABEL_COLOR, true));
+            addLine(lines, Component.translatable("gui.slagtraits.no_info"), LABEL_COLOR, true);
         }
         return lines;
     }
 
+    private List<FormattedCharSequence> traitTooltip(MutableComponent name, Trait trait) {
+        List<FormattedCharSequence> tooltip = new ArrayList<>();
+        tooltip.add(name.copy().withStyle(style -> style.withColor(trait.getColor())).getVisualOrderText());
+        String description = trait.getDescription();
+        if (description != null && !description.isEmpty()) {
+            tooltip.addAll(font.split(Component.literal(description).withStyle(ChatFormatting.GRAY), TOOLTIP_WRAP_WIDTH));
+        }
+        return tooltip;
+    }
+
+    private void addLine(List<Line> lines, Component text, int color, boolean centered) {
+        lines.add(new Line(font.split(text, wrapWidth), color, centered, List.of()));
+    }
+
     private void addHeader(List<Line> lines, String key) {
-        if (!lines.isEmpty()) lines.add(new Line(Component.empty(), 0, false));
-        lines.add(new Line(Component.translatable(key).withStyle(ChatFormatting.BOLD, ChatFormatting.UNDERLINE), HEADER_COLOR, true));
+        if (!lines.isEmpty()) lines.add(new Line(List.of(), 0, false, List.of()));
+        addLine(lines, Component.translatable(key).withStyle(ChatFormatting.BOLD, ChatFormatting.UNDERLINE), HEADER_COLOR, true);
     }
 
     private void addStat(List<Line> lines, String key, float value) {
         if (value == 0f) return;
         MutableComponent label = Component.translatable("gui.slagtraits.stat." + key).withStyle(ChatFormatting.GRAY);
-        lines.add(new Line(label.append(Component.literal(": " + formatStat(value)).withStyle(ChatFormatting.WHITE)), TEXT_COLOR, false));
+        addLine(lines, label.append(Component.literal(": " + formatStat(value)).withStyle(ChatFormatting.WHITE)), TEXT_COLOR, false);
     }
 
     private static String formatStat(float v) {

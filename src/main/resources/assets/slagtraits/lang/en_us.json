@@ -6,7 +6,7 @@
   "gui.slagtraits.traits": "Traits",
   "gui.slagtraits.stats": "Stats",
   "gui.slagtraits.parts": "Parts",
-  "gui.slagtraits.empty": "Insert an item to inspect",
+  "gui.slagtraits.empty": "Insert a modular item to inspect",
   "gui.slagtraits.no_info": "No traits or stats",
   "gui.slagtraits.stat.attack_damage": "Attack Damage",
   "gui.slagtraits.stat.mining_speed": "Mining Speed",
