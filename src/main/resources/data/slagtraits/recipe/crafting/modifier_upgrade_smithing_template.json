@@ -1,0 +1,21 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "R": {
+      "tag": "c:ingots/rose_gold"
+    },
+    "D": {
+      "item": "minecraft:cobbled_deepslate"
+    }
+  },
+  "pattern": [
+    "DRD",
+    "DRD",
+    "DDD"
+  ],
+  "result": {
+    "count": 1,
+    "id": "slagtraits:modifier_upgrade_smithing_template"
+  }
+}

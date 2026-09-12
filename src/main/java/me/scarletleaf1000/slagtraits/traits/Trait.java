@@ -3,6 +3,7 @@ package me.scarletleaf1000.slagtraits.traits;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.ItemStack;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -21,6 +22,7 @@ public class Trait {
 
     //for modifier traits
     private final boolean modifier;
+    private final ItemStack upgradeItem;
     private final int baseCostPerLevel;
     private final float scalingMultiplier;
 
@@ -44,6 +46,7 @@ public class Trait {
                     EquipmentType.CODEC.fieldOf("equipment_type").forGetter(Trait::getEquipmentType),
                     Codec.INT.optionalFieldOf("max_tier", 255).forGetter(Trait::getMaxTier),
                     Codec.BOOL.optionalFieldOf("modifier", false).forGetter(Trait::isModifier),
+                    ItemStack.CODEC.optionalFieldOf("upgrade_item", ItemStack.EMPTY).forGetter(Trait::getUpgradeItem),
                     Codec.INT.optionalFieldOf("base_cost", 0).forGetter(Trait::getBaseCostPerLevel),
                     Codec.FLOAT.optionalFieldOf("scaling_multiplier", 1f).forGetter(Trait::getScalingMultiplier),
                     TRIGGER_LIST_CODEC.fieldOf("triggers").forGetter(Trait::getTriggers),
@@ -51,16 +54,17 @@ public class Trait {
                     Codec.INT.optionalFieldOf("color", 0xFFFFFF).forGetter(Trait::getColor),
                     STRING_SET_CODEC.optionalFieldOf("exclusive_with", new HashSet<>())
                             .forGetter(Trait::getExclusiveWith)
-            ).apply(instance, Trait::new));
+            ).apply(instance, (id1, displayName1, description1, type, maxLevel, modifier1, upgradeItem1, baseCostPerLevel1, scalingMultiplier1, triggers1, hidden1, color1, exclusiveWith1) -> new Trait(id1, displayName1, description1, type, maxLevel, modifier1, upgradeItem1, baseCostPerLevel1, scalingMultiplier1, triggers1, hidden1, color1, exclusiveWith1)));
 
     public Trait(ResourceLocation id, String displayName, String description, EquipmentType type,
-                 int maxLevel, boolean modifier, int baseCostPerLevel, float scalingMultiplier,
+                 int maxLevel, boolean modifier, ItemStack upgradeItem, int baseCostPerLevel, float scalingMultiplier,
                  List<Trigger> triggers, boolean hidden, int color, Set<String> exclusiveWith) {
         this.id = id;
         this.displayName = displayName;
         this.description = description;
         this.equipmentType = type;
         this.maxTier = maxLevel;
+        this.upgradeItem = upgradeItem;
         this.triggers = triggers != null ? triggers : new ArrayList<>();
 
         this.modifier = modifier;
@@ -75,6 +79,9 @@ public class Trait {
     public boolean isModifier() {
         return modifier;
     }
+
+    public ItemStack getUpgradeItem() {
+        return  upgradeItem; }
 
     public int getBaseCostPerLevel() {
         return baseCostPerLevel;

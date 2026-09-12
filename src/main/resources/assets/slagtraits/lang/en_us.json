@@ -16,5 +16,7 @@
   "gui.slagtraits.stat.defense": "Defense",
   "gui.slagtraits.stat.toughness": "Toughness",
   "gui.slagtraits.stat.kb_resist": "Knockback Resist",
-  "gui.slagtraits.stat.enchantability": "Enchantability"
+  "gui.slagtraits.stat.enchantability": "Enchantability",
+
+  "item.slagtraits.modifier_upgrade_smithing_template": "Modifier Upgrade Template"
 }

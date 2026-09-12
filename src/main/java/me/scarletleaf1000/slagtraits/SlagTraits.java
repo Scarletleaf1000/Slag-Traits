@@ -1,6 +1,8 @@
 package me.scarletleaf1000.slagtraits;
 
 import com.mojang.logging.LogUtils;
+import dev.lopyluna.slag.register.AllCreativeTabs;
+import me.scarletleaf1000.slagtraits.item.ModItems;
 import me.scarletleaf1000.slagtraits.recipe.ModRecipes;
 import me.scarletleaf1000.slagtraits.traits.loader.MaterialTraitDataReloadListener;
 import me.scarletleaf1000.slagtraits.traits.loader.TraitDataReloadListener;
@@ -37,6 +39,8 @@ public class SlagTraits {
         // Register the commonSetup method for modloading
         modEventBus.addListener(this::commonSetup);
 
+        ModItems.register(modEventBus);
+
         TraitEffects.register();
         new TraitEventHandler();
         ModRecipes.register(modEventBus);
@@ -57,9 +61,10 @@ public class SlagTraits {
 
     }
 
-    // Add the example block item to the building blocks tab
     private void addCreative(BuildCreativeModeTabContentsEvent event) {
-
+       if (event.getTabKey() == AllCreativeTabs.BASE_TAB.getKey()) {
+           event.accept(ModItems.MODIFIER_UPGRADE_SMITHING_TEMPLATE);
+       }
     }
 
     // You can use SubscribeEvent and let the Event Bus discover methods to call
