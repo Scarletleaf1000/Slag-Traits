@@ -11,6 +11,10 @@ import net.neoforged.neoforge.common.ModConfigSpec;
 public class Config {
     private static final ModConfigSpec.Builder BUILDER = new ModConfigSpec.Builder();
 
+    public static final ModConfigSpec.DoubleValue PART_SWAP_BREAK_CHANCE = BUILDER
+            .comment("Chance that a removed modular tool part breaks instead of dropping when swapped at a smithing table.")
+            .defineInRange("partSwapBreakChance", 0.2, 0.0, 1.0);
+
     static final ModConfigSpec SPEC = BUILDER.build();
 
     @SubscribeEvent

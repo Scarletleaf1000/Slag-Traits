@@ -6,7 +6,8 @@
   "mixins": [
     "ItemEntityFireImmuneMixin",
     "ItemStackHurtAndBreakMixin",
-    "ItemCombinerMenuMixin"
+    "ItemCombinerMenuMixin",
+    "ItemCombinerMenuAccessor"
   ],
   "client": [],
   "server": []

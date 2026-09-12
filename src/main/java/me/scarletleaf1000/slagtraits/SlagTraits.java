@@ -1,6 +1,7 @@
 package me.scarletleaf1000.slagtraits;
 
 import com.mojang.logging.LogUtils;
+import me.scarletleaf1000.slagtraits.recipe.ModRecipes;
 import me.scarletleaf1000.slagtraits.traits.loader.MaterialTraitDataReloadListener;
 import me.scarletleaf1000.slagtraits.traits.loader.TraitDataReloadListener;
 import me.scarletleaf1000.slagtraits.events.TraitEventHandler;
@@ -38,6 +39,7 @@ public class SlagTraits {
 
         TraitEffects.register();
         new TraitEventHandler();
+        ModRecipes.register(modEventBus);
 
         // Register ourselves for server and other game events we are interested in.
         // Note that this is necessary if and only if we want *this* class (Slagtraits) to respond directly to events.
