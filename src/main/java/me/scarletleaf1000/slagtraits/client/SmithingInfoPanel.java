@@ -10,6 +10,7 @@ import me.scarletleaf1000.slagtraits.traits.EquipmentType;
 import me.scarletleaf1000.slagtraits.traits.Trait;
 import me.scarletleaf1000.slagtraits.traits.data.AppliedModifiers;
 import me.scarletleaf1000.slagtraits.traits.data.ModDataComponents;
+import me.scarletleaf1000.slagtraits.traits.leveling.ToolLeveling;
 import me.scarletleaf1000.slagtraits.traits.resolver.TraitResolver;
 import me.scarletleaf1000.slagtraits.util.DisplayUtils;
 import net.minecraft.ChatFormatting;
@@ -134,6 +135,20 @@ public class SmithingInfoPanel extends AbstractWidget {
                 .filter(t -> t.trait() != null && !t.trait().isHidden())
                 .toList();
         AppliedModifiers modifiers = stack.getOrDefault(ModDataComponents.MODIFIERS, AppliedModifiers.EMPTY);
+
+        if (ToolLeveling.isLevelable(stack)) {
+            int level = ToolLeveling.getLevel(stack);
+            int used = ModifierService.slotsUsed(modifiers);
+            int total = ToolLeveling.getModifierSlots(stack);
+            MutableComponent levelLine = Component.translatable("tooltip.slagtraits.level",
+                            DisplayUtils.intToRoman(level))
+                    .withStyle(ChatFormatting.YELLOW);
+            addLine(lines, levelLine, TEXT_COLOR, false);
+            MutableComponent slotsLine = Component.translatable("gui.slagtraits.modifier_slots", used, total)
+                    .withStyle(ChatFormatting.GRAY);
+            addLine(lines, slotsLine, TEXT_COLOR, false);
+        }
+
         if (!traits.isEmpty()) {
             addHeader(lines, "gui.slagtraits.traits");
             for (ActiveTrait active : traits) {

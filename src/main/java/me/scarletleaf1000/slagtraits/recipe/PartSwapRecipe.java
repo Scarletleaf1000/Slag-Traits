@@ -18,7 +18,7 @@ public class PartSwapRecipe implements SmithingRecipe {
 
     @Override
     public boolean isBaseIngredient(ItemStack stack) {
-        return SmithingRules.isModularTool(stack);
+        return SmithingRules.isModularEquipment(stack);
     }
 
     @Override

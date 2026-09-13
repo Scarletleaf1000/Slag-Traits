@@ -19,6 +19,27 @@ public class Config {
             .comment("Whether modular tools can receive enchantments.")
             .define("modularToolsEnchantable", false);
 
+    public static final ModConfigSpec.DoubleValue TOOL_XP_BASE = BUILDER
+            .comment("Base XP cost to go from level 1 to level 2.",
+                    "XP needed to go from level L to L+1 = toolXpBase * toolXpMultiplier^(L-1).")
+            .defineInRange("toolXpBase", 100.0, 1.0, 1.0e9);
+
+    public static final ModConfigSpec.DoubleValue TOOL_XP_MULTIPLIER = BUILDER
+            .comment("Multiplier applied to the XP cost of each successive tool level.")
+            .defineInRange("toolXpMultiplier", 2.0, 0.01, 1000.0);
+
+    public static final ModConfigSpec.IntValue TOOL_XP_PER_BLOCK = BUILDER
+            .comment("XP granted to a mining tool each time it breaks a block.")
+            .defineInRange("toolXpPerBlock", 1, 0, 100000);
+
+    public static final ModConfigSpec.DoubleValue TOOL_XP_PER_DAMAGE = BUILDER
+            .comment("XP granted to a weapon per point of damage dealt.")
+            .defineInRange("toolXpPerDamage", 1.0, 0.0, 10000.0);
+
+    public static final ModConfigSpec.DoubleValue TOOL_XP_PER_ABSORBED = BUILDER
+            .comment("XP granted to each worn armor piece per point of damage taken.")
+            .defineInRange("toolXpPerAbsorbed", 1.0, 0.0, 10000.0);
+
     static final ModConfigSpec SPEC = BUILDER.build();
 
     @SubscribeEvent

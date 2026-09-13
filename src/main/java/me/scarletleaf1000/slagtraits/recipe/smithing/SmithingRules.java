@@ -16,6 +16,12 @@ public final class SmithingRules {
                 && EquipmentClassifier.getEquipmentType(stack) == EquipmentType.TOOL;
     }
 
+    /** Any modular item that can gain XP/levels: tools, weapons, and armor. */
+    public static boolean isModularEquipment(ItemStack stack) {
+        return stack.getItem() instanceof IModularItem
+                && EquipmentClassifier.getEquipmentType(stack) != EquipmentType.NONE;
+    }
+
     public static boolean isReplacementPart(ItemStack stack) {
         return stack.getItem() instanceof IDynamicPart;
     }

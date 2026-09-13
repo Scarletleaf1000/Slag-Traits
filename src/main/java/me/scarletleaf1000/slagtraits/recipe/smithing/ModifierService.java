@@ -8,6 +8,7 @@ import me.scarletleaf1000.slagtraits.traits.Trait;
 import me.scarletleaf1000.slagtraits.traits.data.AppliedModifiers;
 import me.scarletleaf1000.slagtraits.traits.data.ModDataComponents;
 import me.scarletleaf1000.slagtraits.traits.data.TraitDataManager;
+import me.scarletleaf1000.slagtraits.traits.leveling.ToolLeveling;
 import me.scarletleaf1000.slagtraits.traits.resolver.TraitResolver;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
@@ -27,7 +28,19 @@ public final class ModifierService {
                 EquipmentClassifier.getEquipmentType(tool))) return false;
 
         AppliedModifiers modifiers = tool.getOrDefault(ModDataComponents.MODIFIERS, AppliedModifiers.EMPTY);
-        if (modifiers.getValue(trait.getId()) >= valueForMaxTier(trait)) return false;
+        int stored = modifiers.getValue(trait.getId());
+        int currentTier = tierForValue(trait, stored);
+        int nextTier = currentTier + 1;
+        if (nextTier > trait.getMaxTier()) return false;
+
+        // Each application raises the modifier by exactly one tier and costs one template,
+        // so the full material cost of the next tier must be present.
+        int addAmount = valueForTier(trait, nextTier) - stored;
+        if (addition.getCount() < addAmount) return false;
+
+        // Each modifier tier occupies one modifier slot; slots available equal the tool level.
+        int slotsUsed = slotsUsed(modifiers);
+        if (slotsUsed - currentTier + nextTier > ToolLeveling.getModifierSlots(tool)) return false;
 
         for (ResourceLocation appliedId : modifiers.traitData().keySet()) {
             if (appliedId.equals(trait.getId())) continue;
@@ -45,10 +58,21 @@ public final class ModifierService {
         AppliedModifiers modifiers = tool.getOrDefault(ModDataComponents.MODIFIERS, AppliedModifiers.EMPTY);
         var trait = TraitDataManager.findModifierForItem(addition);
         int stored = modifiers.getValue(trait.getId());
-        int needed = valueForMaxTier(trait) - stored;
-        int consumed = Math.min(addition.getCount(), needed);
+        int nextTier = tierForValue(trait, stored) + 1;
+        int consumed = Math.min(addition.getCount(), valueForTier(trait, nextTier) - stored);
         newTool.set(ModDataComponents.MODIFIERS, modifiers.withAdded(trait.getId(), consumed));
         return new ModifierResult(newTool, consumed);
+    }
+
+    /** Total modifier slots occupied: every tier of every applied modifier costs one slot. */
+    public static int slotsUsed(AppliedModifiers modifiers) {
+        int used = 0;
+        for (var entry : modifiers.traitData().entrySet()) {
+            Trait applied = TraitDataManager.get(entry.getKey());
+            if (applied == null || !applied.isModifier()) continue;
+            used += tierForValue(applied, entry.getValue());
+        }
+        return used;
     }
 
     public static int costForTier(Trait trait, int tier) {

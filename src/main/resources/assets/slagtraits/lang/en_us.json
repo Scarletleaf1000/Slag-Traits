@@ -1,6 +1,7 @@
 {
   "tooltip.slagtraits.traits_header": "Traits:",
   "tooltip.slagtraits.hold_alt": "Hold [%s] for Traits",
+  "tooltip.slagtraits.level": "Level %s",
 
   "gui.slagtraits.panel": "Item Info",
   "gui.slagtraits.traits": "Traits",
@@ -17,6 +18,7 @@
   "gui.slagtraits.stat.toughness": "Toughness",
   "gui.slagtraits.stat.kb_resist": "Knockback Resist",
   "gui.slagtraits.stat.enchantability": "Enchantability",
+  "gui.slagtraits.modifier_slots": "Modifier Slots: %s/%s",
 
   "item.slagtraits.modifier_upgrade_smithing_template": "Modifier Upgrade Template"
 }
