@@ -72,7 +72,9 @@ public class TraitEventHandler {
     public void onBreakSpeed(PlayerEvent.BreakSpeed event) {
         Player player = event.getEntity();
         if (player == null) return;
-        dispatch("on_break_speed", player, player.getMainHandItem(), event);
+        // BreakSpeed fires on both sides; the client needs the same bonus so its
+        // break prediction matches the server (otherwise blocks vanish silently).
+        dispatch("on_break_speed", player, player.getMainHandItem(), event, true);
     }
 
     @SubscribeEvent
@@ -118,8 +120,12 @@ public class TraitEventHandler {
 
     // Central dispatch
     private void dispatch(String eventId, LivingEntity holder, ItemStack tool, Object event) {
+        dispatch(eventId, holder, tool, event, false);
+    }
+
+    private void dispatch(String eventId, LivingEntity holder, ItemStack tool, Object event, boolean allowClient) {
         if (tool.isEmpty()) return;
-        if (holder.level().isClientSide()) return;
+        if (!allowClient && holder.level().isClientSide()) return;
 
         List<ActiveTrait> activeTraits = TraitResolver.getActiveTraits(tool);
         if (activeTraits.isEmpty()) return;
