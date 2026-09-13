@@ -2,6 +2,7 @@ package me.scarletleaf1000.slagtraits.client;
 
 import dev.lopyluna.slag.content.items.dynamic_part.IModularItem;
 import dev.lopyluna.slag.content.items.modular.DataDynamicParts;
+import me.scarletleaf1000.slagtraits.Config;
 import me.scarletleaf1000.slagtraits.SlagTraits;
 import me.scarletleaf1000.slagtraits.integration.EquipmentClassifier;
 import me.scarletleaf1000.slagtraits.recipe.smithing.ModifierService;
@@ -136,14 +137,16 @@ public class SmithingInfoPanel extends AbstractWidget {
                 .toList();
         AppliedModifiers modifiers = stack.getOrDefault(ModDataComponents.MODIFIERS, AppliedModifiers.EMPTY);
 
-        if (ToolLeveling.isLevelable(stack)) {
-            int level = ToolLeveling.getLevel(stack);
+        if (ToolLeveling.isCompleteModular(stack)) {
+            if (Config.TOOL_LEVELING_ENABLED.get()) {
+                int level = ToolLeveling.getLevel(stack);
+                MutableComponent levelLine = Component.translatable("tooltip.slagtraits.level",
+                                DisplayUtils.intToRoman(level))
+                        .withStyle(ChatFormatting.YELLOW);
+                addLine(lines, levelLine, TEXT_COLOR, false);
+            }
             int used = ModifierService.slotsUsed(modifiers);
             int total = ToolLeveling.getModifierSlots(stack);
-            MutableComponent levelLine = Component.translatable("tooltip.slagtraits.level",
-                            DisplayUtils.intToRoman(level))
-                    .withStyle(ChatFormatting.YELLOW);
-            addLine(lines, levelLine, TEXT_COLOR, false);
             MutableComponent slotsLine = Component.translatable("gui.slagtraits.modifier_slots", used, total)
                     .withStyle(ChatFormatting.GRAY);
             addLine(lines, slotsLine, TEXT_COLOR, false);

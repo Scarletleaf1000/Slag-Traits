@@ -28,6 +28,19 @@ public class Config {
             .comment("Multiplier applied to the XP cost of each successive tool level.")
             .defineInRange("toolXpMultiplier", 2.0, 0.01, 1000.0);
 
+    public static final ModConfigSpec.BooleanValue TOOL_LEVELING_ENABLED = BUILDER
+            .comment("Whether tools gain XP and level up. When disabled, tools have no level",
+                    "and every tool gets a fixed number of modifier slots (modifierSlots).")
+            .define("toolLevelingEnabled", true);
+
+    public static final ModConfigSpec.IntValue TOOL_MAX_LEVEL = BUILDER
+            .comment("Maximum level a tool can reach.")
+            .defineInRange("toolMaxLevel", 10, 1, 10000);
+
+    public static final ModConfigSpec.IntValue MODIFIER_SLOTS = BUILDER
+            .comment("Fixed number of modifier slots every tool gets when toolLevelingEnabled is false.")
+            .defineInRange("modifierSlots", 3, 0, 1000);
+
     public static final ModConfigSpec.IntValue TOOL_XP_PER_BLOCK = BUILDER
             .comment("XP granted to a mining tool each time it breaks a block.")
             .defineInRange("toolXpPerBlock", 1, 0, 100000);

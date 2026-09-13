@@ -2,20 +2,14 @@ package me.scarletleaf1000.slagtraits.traits.leveling;
 
 import dev.lopyluna.slag.content.items.dynamic_part.IModularItem;
 import dev.lopyluna.slag.content.types.ModularType;
+import dev.lopyluna.slag.register.AllDataComponents;
 import me.scarletleaf1000.slagtraits.Config;
-import me.scarletleaf1000.slagtraits.traits.EquipmentType;
 import me.scarletleaf1000.slagtraits.traits.data.ModDataComponents;
-import me.scarletleaf1000.slagtraits.integration.EquipmentClassifier;
-import net.minecraft.core.component.DataComponents;
-import net.minecraft.world.item.DiggerItem;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.ShearsItem;
 
 import java.util.Set;
 
 public final class ToolLeveling {
-    private static final int MAX_LEVEL = 10000;
-
     private static final Set<String> MINING_ACTIONS = Set.of(
             "pickaxe", "axe", "shovel", "hoe", "hammer", "scythe",
             "shears", "wrench", "cutting", "vein", "harvest");
@@ -23,26 +17,31 @@ public final class ToolLeveling {
     private ToolLeveling() {
     }
 
-    /** True for any item that can gain XP and has a level (tools, weapons, armor). */
-    public static boolean isLevelable(ItemStack stack) {
-        if (stack.isEmpty()) return false;
-        return EquipmentClassifier.getEquipmentType(stack) != EquipmentType.NONE;
+    /**
+     * True for a fully-assembled modular tool. The smithing recipes set
+     * {@link AllDataComponents#BUILT} once the tool's textures are baked/positioned,
+     * so partly-finished tools and vanilla items are excluded.
+     */
+    public static boolean isCompleteModular(ItemStack stack) {
+        return !stack.isEmpty()
+                && stack.getItem() instanceof IModularItem
+                && stack.has(AllDataComponents.BUILT);
     }
 
-    /** True for items whose intended function is breaking blocks. */
+    /** True for items that participate in the leveling system. */
+    public static boolean isLevelable(ItemStack stack) {
+        return Config.TOOL_LEVELING_ENABLED.get() && isCompleteModular(stack);
+    }
+
+    /** True for modular items whose intended function is breaking blocks. */
     public static boolean isMiningItem(ItemStack stack) {
-        if (stack.isEmpty()) return false;
-        if (stack.getItem() instanceof IModularItem modular) {
-            ModularType type = modular.getModularTypeFromStack(stack);
-            if (type == null || type.actions == null) return false;
-            for (String action : type.actions) {
-                if (MINING_ACTIONS.contains(action)) return true;
-            }
-            return false;
+        if (!(stack.getItem() instanceof IModularItem modular)) return false;
+        ModularType type = modular.getModularTypeFromStack(stack);
+        if (type == null || type.actions == null) return false;
+        for (String action : type.actions) {
+            if (MINING_ACTIONS.contains(action)) return true;
         }
-        return stack.getItem() instanceof DiggerItem
-                || stack.getItem() instanceof ShearsItem
-                || stack.has(DataComponents.TOOL);
+        return false;
     }
 
     public static int getXp(ItemStack stack) {
@@ -71,11 +70,12 @@ public final class ToolLeveling {
         return total;
     }
 
-    /** Level for a total XP amount. Level 1 starts at 0 XP. */
+    /** Level for a total XP amount. Level 1 starts at 0 XP, capped at the configured max. */
     public static int levelForXp(long xp) {
+        int max = Math.max(1, Config.TOOL_MAX_LEVEL.get());
         int level = 1;
         long remaining = xp;
-        while (level < MAX_LEVEL) {
+        while (level < max) {
             long needed = xpForNextLevel(level);
             if (remaining < needed) break;
             remaining -= needed;
@@ -93,8 +93,14 @@ public final class ToolLeveling {
         return xp - totalXpForLevel(levelForXp(xp));
     }
 
-    /** Number of modifier slots available on the tool (one per level). */
+    /**
+     * Number of modifier slots available on the tool. One per level while leveling
+     * is enabled, otherwise the configured fixed value.
+     */
     public static int getModifierSlots(ItemStack stack) {
+        if (!Config.TOOL_LEVELING_ENABLED.get()) {
+            return Config.MODIFIER_SLOTS.get();
+        }
         return getLevel(stack);
     }
 }
