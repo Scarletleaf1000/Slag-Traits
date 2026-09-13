@@ -3,6 +3,7 @@ package me.scarletleaf1000.slagtraits.integration;
 import dev.lopyluna.slag.content.items.dynamic_part.IModularItem;
 import dev.lopyluna.slag.content.types.ModularType;
 import me.scarletleaf1000.slagtraits.traits.EquipmentType;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.world.item.*;
 
 public class EquipmentClassifier {
@@ -39,8 +40,12 @@ public class EquipmentClassifier {
             return EquipmentType.NONE; // fallback for unclassified Slag items
         }
 
-        if (item instanceof ArmorItem) return EquipmentType.ARMOR;
-        if (item instanceof DiggerItem || item instanceof SwordItem || item instanceof ShearsItem || item instanceof TridentItem)
+        if (item instanceof ArmorItem || item instanceof Equipable) return EquipmentType.ARMOR;
+        if (item instanceof DiggerItem || item instanceof SwordItem || item instanceof ShearsItem
+                || item instanceof TridentItem || item instanceof MaceItem
+                || item instanceof ProjectileWeaponItem || item instanceof FishingRodItem)
+            return EquipmentType.TOOL;
+        if (stack.has(DataComponents.TOOL))
             return EquipmentType.TOOL;
         return EquipmentType.NONE;
     }

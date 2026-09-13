@@ -1,16 +1,22 @@
 package me.scarletleaf1000.slagtraits.traits.effect.implementation;
 
 import me.scarletleaf1000.slagtraits.traits.effect.TraitEffect;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.item.crafting.SingleRecipeInput;
+import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Block;
 import net.neoforged.neoforge.event.entity.living.LivingDeathEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.event.level.BlockDropsEvent;
 import net.neoforged.neoforge.event.level.BlockEvent;
+
+import java.util.List;
 
 /**
  * Handles tool-related effects.
@@ -19,7 +25,7 @@ import net.neoforged.neoforge.event.level.BlockEvent;
  *   speed_multiplier / speed_multiplier_per_tier   (on_break_speed)
  *   auto_smelt                                     (on_block_drops, boolean)
  *   silk_touch                                     (on_block_drops, boolean)
- *   drop_multiplier / drop_multiplier_per_tier     (on_block_drops)
+ *   fortune_level / fortune_level_per_tier         (on_block_drops)
  *   repair_on_break / repair_on_break_per_tier     (on_block_break)
  *   repair_on_kill / repair_on_kill_per_tier       (on_kill)
  */
@@ -41,7 +47,7 @@ public class ToolEffectHandler {
     }
 
     private static void handleDrops(BlockDropsEvent drops, TraitEffect effect, int tier) {
-        if (!(drops.getLevel() instanceof Level level)) return;
+        if (!(drops.getLevel() instanceof ServerLevel level)) return;
 
         if (effect.getBoolean("silk_touch", false)) {
             ItemStack blockItem = new ItemStack(drops.getState().getBlock());
@@ -52,6 +58,22 @@ public class ToolEffectHandler {
                         blockItem));
             }
             return;
+        }
+
+        int fortuneLevel = effect.getScaledInt("fortune_level", "fortune_level_per_tier", tier, 0);
+        if (fortuneLevel > 0) {
+            ItemStack fortuneTool = drops.getTool().copy();
+            var enchantments = level.registryAccess().lookupOrThrow(Registries.ENCHANTMENT);
+            fortuneTool.enchant(enchantments.getOrThrow(Enchantments.FORTUNE), fortuneLevel);
+            List<ItemStack> fortuneDrops = Block.getDrops(drops.getState(), level, drops.getPos(),
+                    drops.getBlockEntity(), drops.getBreaker(), fortuneTool);
+
+            drops.getDrops().clear();
+            for (ItemStack stack : fortuneDrops) {
+                drops.getDrops().add(new ItemEntity(level,
+                        drops.getPos().getX() + 0.5, drops.getPos().getY() + 0.5, drops.getPos().getZ() + 0.5,
+                        stack));
+            }
         }
 
         if (effect.getBoolean("auto_smelt", false)) {
@@ -66,15 +88,6 @@ public class ToolEffectHandler {
                         drop.setItem(result);
                     }
                 }
-            }
-        }
-
-        float dropMult = effect.getScaledFloat("drop_multiplier", "drop_multiplier_per_tier", tier, 0f);
-        if (dropMult > 0f) {
-            for (ItemEntity drop : drops.getDrops()) {
-                ItemStack stack = drop.getItem();
-                int newCount = Math.round(stack.getCount() * (1f + dropMult));
-                stack.setCount(Math.min(newCount, stack.getMaxStackSize()));
             }
         }
     }
