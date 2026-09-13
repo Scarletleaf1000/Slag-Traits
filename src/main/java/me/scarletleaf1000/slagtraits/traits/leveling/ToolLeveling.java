@@ -18,14 +18,14 @@ public final class ToolLeveling {
     }
 
     /**
-     * True for a fully-assembled modular tool. The smithing recipes set
-     * {@link AllDataComponents#BUILT} once the tool's textures are baked/positioned,
-     * so partly-finished tools and vanilla items are excluded.
+     * True for a fully-assembled modular tool. Assembly stamps
+     * {@link AllDataComponents#MODULAR_TYPE} on the tool once its model is baked,
+     * while blueprints share the item ID but never receive it.
      */
     public static boolean isCompleteModular(ItemStack stack) {
         return !stack.isEmpty()
                 && stack.getItem() instanceof IModularItem
-                && stack.has(AllDataComponents.BUILT);
+                && stack.has(AllDataComponents.MODULAR_TYPE);
     }
 
     /** True for items that participate in the leveling system. */
